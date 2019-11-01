@@ -25,16 +25,35 @@
 	<body>
 		
 		<script>
-		
-		// Scene Variables
+		// -------------------------- Scene Variables ------------------------------------------------------------------------------------
 		var scene, camera, renderer, controls, stats;
+		var normalized_heightmap,dim;
 
-		// Terrain Variables
-		var grass_layer_mesh, grass_layer_geometry;		// grass layer, mesh e geometry
-		var dirt_layer_mesh, dirt_layer_geometry;		// dirt layer, mesh e geometry
+		// -------------------------- Terrain Variables ----------------------------------------------------------------------------------
+		// top layer, mesh e geometry (example:top)
+		var top_layer_mesh, top_layer_geometry;
+		// bottom layer, mesh e geometry (example:rock,bottom)
+		var bottom_layer_mesh, bottom_layer_geometry;
 
+		var vegetation_layer_mesh,vegetation_layer_geometry; // not used? fix grass mesh merging
+
+
+
+		// -------------------------- Models ---------------------------------------------------------------------------------------------
+		var grass1;
+
+		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO ------------------------------------------------------------------
+		var heightmap_img = "textures/heightmap_desert.png";		// path dell'img per l'heightmap
+		var top_texture_path = "textures/sand_top.jpg";	// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/sand_top.jpg";	// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var altezza_max_terreno = 50;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var grass_density = 0.025; 							// from 0 to 100 (esempio: 0.32 = 32%)
+		var sea_level = 5; 									// not used jet
+		var wireframe_view = false;							// cubi wireframe view ON/OFF
+		// -------------------------------------------------------------------------------------------------------------------------------
 
 		function Start() {
+
 			// ----> Scene Initialization Phase:
 			scene = new THREE.Scene();
 			SetupRenderer();	// Setup the renderer
@@ -43,39 +62,49 @@
 			SetupLightSystem();	// Setup the lightSystem
 			Coordinates.drawAllAxes(); // show axis on scene
 
-			// ----> Start Code:
-			grass_layer_geometry = new THREE.Geometry();
-			dirt_layer_geometry = new THREE.Geometry();
+			// ----> START Code:
+			top_layer_geometry = new THREE.Geometry();
+			bottom_layer_geometry = new THREE.Geometry();
+			vegetation_layer_geometry = new THREE.Geometry(); // not used jet, should be used in future?
+
+
+			// ----> Loading Models Phase:
+			var loader = new THREE.ObjectLoader();
+			loader.load("../models/grass1.json",
+					// onLoad callback
+					function(obj){
+						// Add the loaded object to the scene
+						grass1 = obj; //new THREE.Mesh
+					},)
 			
 			// ----> Terrain generation event trigger:
 			var img = new Image();
-			img.src = "textures/heightmap5.png"; // HeightMap SOURCE IMG (should be nxn)
+			img.src = heightmap_img; // HeightMap SOURCE IMG (should be nxn)
 
 			img.onload = function () {	// Questo codice viene eseguito quando l'immagine nella riga precedente viene caricata. [NB: attenzione esecuzione concorrente]
 				var data = getHeightData(img);	// Ottengo i valori "heightData" dall'algoritmo getHeightData, relativi all'immagine appena caricata. the number is the scale
-
 				console.log("Generated heightMap:");console.log(data);	// Debug
-
 				// Chiamata all'algoritmo di generazione del terreno
-				GenerateTerrainData(data,50);	// input: data (from getHeightData output), layers->
+				GenerateTerrainData(data,altezza_max_terreno);	// input: data (from getHeightData output), layers->
 				// Chiamata di spawning del terreno appena generato
 				SpawnTerrain();
-
+				// Chiamata di generazione della vegetazione dopo aver generato e istanziato il mesh del terreno.
+				//GenerateVegetation();
+				
 			}
 		
 		}
 
+		// TODO: REWRITE COMMENTS WITH FACES/PLANES LOGIC
+
 		/*
-		 Input: heightmap data ricevuta dall'algoritmo "getHeightData"
+		 Input: heightmap data ricevuta dall'algoritmo "getHeightData" 
 		 normalizza i valori di altezza in un range che va da 0 a "layers"
 		 e poi spawna (tramite una chiamata a SpawnCube) un cubo in ciascun pixel dell'immagine, alle cordinate equivalenti che essi hanno nell'immagine, con un altezza pari al valore
 		 restituito da "getHeightData" per quel pixel.
 
 		 Esempio: pixel di cordinate x:3 e z:5 il cui valore restituito in heightmap è 2 -> spawno un cubo in pos  (3,2,5)
 
-				DONE  : FIX/CONTROL HEIHGT NORMALIZATION (seems to be incorrect) NB: Scale should be one
-				TODO 2: REMOVE COLOR SETUP?
-				DONE  : OFFSET AUTOMATICALLY CALCULATED
 				TODO 4: FIX NaN errors during holes fixing phase due to cubes positioned in the corner of the terrain
 
 		INPUT:
@@ -86,9 +115,10 @@
 		 Algorithm version 2
 		 
 		 */
+
 		function GenerateTerrainData(data,layers){
 
-			var dim = Math.sqrt(data.length); // Calcolo della dimensione del terreno, le immagini heightmap sono del tipo nxn, la dimensione sara sqrt(nxn).
+			dim = Math.sqrt(data.length); // Calcolo della dimensione del terreno, le immagini heightmap sono del tipo nxn, la dimensione sara sqrt(nxn).
 			var offset = dim/2; // pari a metà della dimensione dell'immagine. Serve per spawnare i cubi con un'offset corretto rispetto al centro della scena, così da avere il terreno finale in pos 0,0,0.
 			console.log(" Input terrain height map is " + dim + " x " + dim);
 			var heightmap = data;
@@ -99,10 +129,27 @@
 				heightmap[k] = Math.floor(heightmap[k]/(255/layers));
 			}
 
+			// Store result in public var
+			normalized_heightmap = heightmap;
+
 			//Spawn cubes in the x,y,z pos from img where x,z: x & z cordinates of the pixel in the image, y: height from x,z value of the heightmap
 			for(i = 0; i<dim; i++){
 				for(j = 0; j<dim; j++){
-					SpawnCube(i-offset,heightmap[i*dim+j],j-offset,"green","grass_layer");
+
+					center = heightmap[i*dim+j];
+					left = heightmap[i*dim+j-1];
+					right = heightmap[i*dim+j+1];
+					up = heightmap[(i-1)*dim+j];
+					down = heightmap[(i+1)*dim+j];
+
+					if(!(Number.isNaN(left))&& left<center){SpawnCube(i-offset,heightmap[i*dim+j],j-offset-0.5,"top_layer",0,-180);};
+					if(!(Number.isNaN(right))&& right<center){SpawnCube(i-offset,heightmap[i*dim+j],j-offset+0.5,"top_layer",0,0);};
+					if(!(Number.isNaN(up))&& up<center){SpawnCube(i-offset-0.5,heightmap[i*dim+j],j-offset,"top_layer",0,-90);};
+					if(!(Number.isNaN(down))&& down<center){SpawnCube(i-offset+0.5,heightmap[i*dim+j],j-offset,"top_layer",0,-270);};
+					
+					//top face
+					SpawnCube(i-offset,heightmap[i*dim+j]+0.5,j-offset,"top_layer",-90,0);
+
 				}
 			}
 
@@ -119,15 +166,37 @@
 					down = heightmap[(i+1)*dim+j];
 
 					//...and pick the lowest one...
-					min = Math.min(left,right,up,down);
+					//min = Math.min(left,right,up,down);
 
-					//...if the lowest one is lower than the on in the center (the one currently evaluated), spawn cubes in order to "fill the hole" below it.
-					if(!(Number.isNaN(min))){
-						console.log(min);
-						if(min<center){
-							diff=center-min-1;
+					if(!(Number.isNaN(left))){
+						if(left<center){
+							diff=center-left-1;
 							for(k=0;k<diff;k++){
-								SpawnCube(i-offset,center-k-1,j-offset,"yellow","dirt_layer");
+								SpawnCube(i-offset,center-k-1,j-offset-0.5,"bottom_layer",0,-180);	
+							}
+						}
+					}
+					if(!(Number.isNaN(right))){
+						if(right<center){
+							diff=center-right-1;
+							for(k=0;k<diff;k++){
+								SpawnCube(i-offset,center-k-1,j-offset+0.5,"bottom_layer",0,0);			
+							}
+						}
+					}
+					if(!(Number.isNaN(up))){
+						if(up<center){
+							diff=center-up-1;
+							for(k=0;k<diff;k++){
+								SpawnCube(i-offset-0.5,center-k-1,j-offset,"bottom_layer",0,-90);				
+							}
+						}
+					}
+					if(!(Number.isNaN(down))){
+						if(down<center){
+							diff=center-down-1;
+							for(k=0;k<diff;k++){
+								SpawnCube(i-offset+0.5,center-k-1,j-offset,"bottom_layer",0,-270);				
 							}
 						}
 					}
@@ -135,57 +204,81 @@
 			}
 		}
 
+		/*
+			SpawnTerrain() viene chiamato dopo GenerateTerrainData().
+			Prende i mesh del layer superficiale e quello sottostante (top_layer_mesh e bottom_layer_mesh --> Variabili globali)
+			e procede con la loro istanziazione nella scena, applicando texture, creando la geometria e il materiale appropriato.
+		*/
 		function SpawnTerrain(){
-				var grass_texture = THREE.ImageUtils.loadTexture('textures/grass_top.png');
-				var dirt_texture = THREE.ImageUtils.loadTexture('textures/dirt_top.jpg');
-				var grass_material = new THREE.MeshPhongMaterial({color:"white",wireframe:false,map: grass_texture});
-				var dirt_material = new THREE.MeshPhongMaterial({color:"white",wireframe:false,map: dirt_texture});
-				
-				grass_layer_geometry.mergeVertices();
-				dirt_layer_geometry.mergeVertices();
+				// Caricamento delle texture da utilizzare
+				var top_texture = THREE.ImageUtils.loadTexture(top_texture_path);
+				var bottom_texture = THREE.ImageUtils.loadTexture(bottom_texture_path);
 
-				grass_layer_mesh = new THREE.Mesh(grass_layer_geometry,grass_material);
-				grass_layer_mesh.castShadow=true;		// Cube Shadows
-				grass_layer_mesh.receiveShadow=true;
-				scene.add(grass_layer_mesh);
+				// Creazione dei materiali
+				var top_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: top_texture});
+				var bottom_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: bottom_texture});
 
-				dirt_layer_mesh = new THREE.Mesh(dirt_layer_geometry,dirt_material);
-				dirt_layer_mesh.castShadow=true;		// Cube Shadows
-				dirt_layer_mesh.receiveShadow=true;
-				scene.add(dirt_layer_mesh);
+				// Operazione di merging dei vertici doppi (NON SEMBRA FUNZIONARE/AVER ALCUN EFFETTO ???)
+				top_layer_geometry.mergeVertices();
+				bottom_layer_geometry.mergeVertices();
+
+				// Istanziazione top_layer
+				top_layer_mesh = new THREE.Mesh(top_layer_geometry,top_material);
+				top_layer_mesh.castShadow=true;
+				top_layer_mesh.receiveShadow=true;
+				scene.add(top_layer_mesh);
+
+				// Istanziazione bottom_layer
+				bottom_layer_mesh = new THREE.Mesh(bottom_layer_geometry,bottom_material);
+				bottom_layer_mesh.castShadow=true;	
+				bottom_layer_mesh.receiveShadow=true;
+				scene.add(bottom_layer_mesh);
 		}
 
 		/* 
 		Spawn a standard cube on a given position x,y,z
 			color-> colore del cubo (white se non si vuole influenzare l'aspetto delle texture)
-			layer-> serve a specificare a che layer il cubo spawnato deve appartenere (dirt_layer o grass_layer)
+			layer-> serve a specificare a che layer il cubo spawnato deve appartenere (bottom_layer o top_layer)
 		*/
-		function SpawnCube(x,y,z,color,layer){	
-
+		function SpawnCube(x,y,z,layer,x_deg,y_deg){	
+			/*
 			var geometry = new THREE.BoxGeometry(1,1,1);	// Creazione della geometry, del mesh & del materiale per i cubi
 			var material = new THREE.MeshPhongMaterial( {
 				wireframe:false,
-				color: color });
+				color: "white" });
 			var cube = new THREE.Mesh( geometry, material );
 
 			cube.castShadow=true;		// Cube Shadows
 			cube.receiveShadow=true;
 
 			cube.position.set(x,y,z);	// Cube position.set
+			*/
+
+			var geometry = new THREE.PlaneGeometry(1,1,1,1);
+			var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "red" });
+			var face = new THREE.Mesh( geometry, material );
+			face.castShadow=true;
+			face.receiveShadow=true;
+			face.rotation.x = THREE.Math.degToRad(x_deg);
+			face.rotation.y = THREE.Math.degToRad(y_deg);
+			face.position.set(x,y,z);
 
 			// In questa fase il mesh del cubo viene aggiunto (merging) alla mesh del suo layer di appartenenza.
-			if(layer == "grass_layer"){
-				grass_layer_geometry.mergeMesh(cube);	
+			if(layer == "top_layer"){
+				top_layer_geometry.mergeMesh(face);	
 
-			}else if(layer == "dirt_layer"){
-				console.log("added dirt");
-				dirt_layer_geometry.mergeMesh(cube);
+			}else if(layer == "bottom_layer"){
+				//console.log("added bottom");
+				bottom_layer_geometry.mergeMesh(face);
 			}
 		}
 
-		//return array with height data from img (0 to 255), taken from: http://danni-three.blogspot.it/2013/09/threejs-heightmaps.html
+		// return array with height data from img (0 to 255),
+		// taken from: http://danni-three.blogspot.it/2013/09/threejs-heightmaps.html
+
 		function getHeightData(img,scale) {
-  
 		if (scale == undefined) scale=1;
 
 			var canvas = document.createElement( 'canvas' );
@@ -213,6 +306,51 @@
 			}
 
 			return data;
+		}
+
+		function GenerateVegetation(){
+			GenerateGrass();
+		}
+
+		function GenerateGrass(){
+			var heightmap = normalized_heightmap;
+			var grass_quantity = heightmap.length * grass_density;
+			console.log("grass quantity: "+grass_quantity);
+			var min = 0;
+			var max = heightmap.length;
+			var positions_x = [];
+
+			for(i=0;i<grass_quantity;i++){
+				positions_x[i] = Math.floor(Math.random() * (max - min + 1) + min);
+			}
+
+			var positions = Array.from(new Set(positions_x));
+			
+			console.log(positions);
+
+			//Temporal grass model
+			var geometry = new THREE.BoxGeometry(0.25,0.25,0.25);	// Creazione della geometry, del mesh & del materiale per i cubi
+			var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "red" });
+		
+			//-----------------
+
+			var x,z;
+
+			for(j=0;j<positions.length;j++){
+				var offset = dim/2;
+				var grass = new THREE.Mesh( geometry, material );
+				var index = positions[j];
+				x = Math.floor(index/dim);
+				z = index % dim;
+				y = normalized_heightmap[index];
+				var g = grass1.clone();
+				scene.add(g);
+				g.position.set(x-offset,y+0.9,z-offset);
+				g.updateMatrix;
+				vegetation_layer_geometry.merge(g);
+			}
 		}
 		
 		function Update() {
@@ -242,7 +380,7 @@
 			dirLight.shadow.mapSize.width = 2048;
 			dirLight.shadow.mapSize.height = 2048;
 
-			var d = 50;
+			var d = 250;
 			dirLight.shadow.camera.left = - d;
 			dirLight.shadow.camera.right = d;
 			dirLight.shadow.camera.top = d;
