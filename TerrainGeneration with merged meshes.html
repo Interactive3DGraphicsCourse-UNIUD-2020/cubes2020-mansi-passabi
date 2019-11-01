@@ -43,11 +43,11 @@
 		var grass1;
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO ------------------------------------------------------------------
-		var heightmap_img = "textures/heightmap_desert.png";		// path dell'img per l'heightmap
-		var top_texture_path = "textures/sand_top.jpg";	// texture del top_layer (cubi superficie)
+		var heightmap_img = "textures/heightmap6.png";		// path dell'img per l'heightmap
+		var top_texture_path = "textures/sand_top.jpg";	    // texture del top_layer (cubi superficie)
 		var bottom_texture_path = "textures/sand_top.jpg";	// texture del bottom_layer (cubi "pareti"/"pendenze")
 		var altezza_max_terreno = 50;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var grass_density = 0.025; 							// from 0 to 100 (esempio: 0.32 = 32%)
+		var grass_density = 0.25; 							// from 0 to 100 (esempio: 0.32 = 32%)
 		var sea_level = 5; 									// not used jet
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
 		// -------------------------------------------------------------------------------------------------------------------------------
@@ -70,7 +70,7 @@
 
 			// ----> Loading Models Phase:
 			var loader = new THREE.ObjectLoader();
-			loader.load("../models/grass1.json",
+			loader.load("models/grass1.json",
 					// onLoad callback
 					function(obj){
 						// Add the loaded object to the scene
