@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Terrain Generation with merged meshes</title>
+		<title>Terrain Generation</title>
 		<style>
 		
 		body {
@@ -34,25 +34,33 @@
 		var top_layer_mesh, top_layer_geometry;
 		// bottom layer, mesh e geometry (example:rock,bottom)
 		var bottom_layer_mesh, bottom_layer_geometry;
+			
+		var faces = 0;	// Numero di vertici nella scena
+		var cubes = 0;	// numero di cubi nella scena
+		var time_to_render;	//tempo di generazione del terreno
 
 		var vegetation_layer_mesh,vegetation_layer_geometry; // not used? fix grass mesh merging
 
-
-
 		// -------------------------- Models ---------------------------------------------------------------------------------------------
-		var grass1;
+		var grass1;		// Modello dell'erba
+		var cube_face;	// Modello base utilizzato per costruire il terreno. "Faccia di un cubo"
+		
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO ------------------------------------------------------------------
 		var heightmap_img = "textures/heightmap6.png";		// path dell'img per l'heightmap
-		var top_texture_path = "textures/sand_top.jpg";	    // texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/sand_top.jpg";	// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var altezza_max_terreno = 50;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/dirt_top.jpg";	// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var altezza_max_terreno = 60;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
 		var grass_density = 0.25; 							// from 0 to 100 (esempio: 0.32 = 32%)
-		var sea_level = 5; 									// not used jet
+		var sea_level = 5; 									// not used jet (implementa l'acqua)
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
+		var enable_vegetation = false;						// if ON: viene generata la vegetazione e istanziata
+		var show_axis = false;								// if ON: mostra gli assi x,y,z
 		// -------------------------------------------------------------------------------------------------------------------------------
 
 		function Start() {
+
+			var t_1 = Date.now();
 
 			// ----> Scene Initialization Phase:
 			scene = new THREE.Scene();
@@ -60,12 +68,14 @@
 			SetupCamera();		// Setup the camera
 			SetupStatsOSD();	// Setup the on screen stats display window
 			SetupLightSystem();	// Setup the lightSystem
-			Coordinates.drawAllAxes(); // show axis on scene
+			if(show_axis){Coordinates.drawAllAxes();} // show axis on scene
 
 			// ----> START Code:
 			top_layer_geometry = new THREE.Geometry();
 			bottom_layer_geometry = new THREE.Geometry();
 			vegetation_layer_geometry = new THREE.Geometry(); // not used jet, should be used in future?
+			cube_face = createCubeFace();	// Crea e memorizza il modello "faccia del cubo" che verra utilizzata per costruire il terreno.
+			generateGround();
 
 
 			// ----> Loading Models Phase:
@@ -82,14 +92,20 @@
 			img.src = heightmap_img; // HeightMap SOURCE IMG (should be nxn)
 
 			img.onload = function () {	// Questo codice viene eseguito quando l'immagine nella riga precedente viene caricata. [NB: attenzione esecuzione concorrente]
+				
 				var data = getHeightData(img);	// Ottengo i valori "heightData" dall'algoritmo getHeightData, relativi all'immagine appena caricata. the number is the scale
-				console.log("Generated heightMap:");console.log(data);	// Debug
+				//console.log("Generated heightMap:");console.log(data);	// Debug
 				// Chiamata all'algoritmo di generazione del terreno
 				GenerateTerrainData(data,altezza_max_terreno);	// input: data (from getHeightData output), layers->
 				// Chiamata di spawning del terreno appena generato
 				SpawnTerrain();
 				// Chiamata di generazione della vegetazione dopo aver generato e istanziato il mesh del terreno.
-				//GenerateVegetation();
+				if(enable_vegetation){GenerateVegetation();}
+
+				var t_2 = Date.now();
+				time_to_render = t_2-t_1;
+				console.log("Tempo di generazione: "+time_to_render+"ms");	// Print time to generate terrain
+				console.log("Poligoni su schermo: "+faces*2+" (Cubi: "+cubes+"!)");
 				
 			}
 		
@@ -105,22 +121,16 @@
 
 		 Esempio: pixel di cordinate x:3 e z:5 il cui valore restituito in heightmap è 2 -> spawno un cubo in pos  (3,2,5)
 
-				TODO 4: FIX NaN errors during holes fixing phase due to cubes positioned in the corner of the terrain
-
 		INPUT:
 		---> data ----> dati forniti da getHeightData
 		---> layers --> numero di layers (altezza max del terreno) voluti
-		---> offset --> read todo.
 
-		 Algorithm version 2
-		 
-		 */
-
+		[Algorithm version 4]    */
 		function GenerateTerrainData(data,layers){
 
 			dim = Math.sqrt(data.length); // Calcolo della dimensione del terreno, le immagini heightmap sono del tipo nxn, la dimensione sara sqrt(nxn).
 			var offset = dim/2; // pari a metà della dimensione dell'immagine. Serve per spawnare i cubi con un'offset corretto rispetto al centro della scena, così da avere il terreno finale in pos 0,0,0.
-			console.log(" Input terrain height map is " + dim + " x " + dim);
+			console.log(" L'immagine di input per la generazione del terreno è: " + dim + " x " + dim);
 			var heightmap = data;
 
 			// Fase di normalizzazione da 0-255 a 0-layers
@@ -129,32 +139,36 @@
 				heightmap[k] = Math.floor(heightmap[k]/(255/layers));
 			}
 
-			// Store result in public var
+			// Salva il risultato in un'altra variabile globale
 			normalized_heightmap = heightmap;
 
 			//Spawn cubes in the x,y,z pos from img where x,z: x & z cordinates of the pixel in the image, y: height from x,z value of the heightmap
 			for(i = 0; i<dim; i++){
 				for(j = 0; j<dim; j++){
 
+					// Per ciascun pixel (e quindi cubo) calcola la propria altezza (leggendo da heightmap) e quella dei vicini
 					center = heightmap[i*dim+j];
 					left = heightmap[i*dim+j-1];
 					right = heightmap[i*dim+j+1];
 					up = heightmap[(i-1)*dim+j];
 					down = heightmap[(i+1)*dim+j];
 
+					// Istanzia la parte superficiale (orizzontale) del cubo....
+					SpawnCube(i-offset,heightmap[i*dim+j]+0.5,j-offset,"top_layer",-90,0);
+
+					//... poi valuta quali delle 4 facce laterali siano necessarie e procede con la loro generazione.
+					// Esempio: se il cubo x ha altezza 5 e il cubo alla sua sinistra ha altezza sempre pari a 5, non c'è bisogno di istanziare la faccia sinistra.
 					if(!(Number.isNaN(left))&& left<center){SpawnCube(i-offset,heightmap[i*dim+j],j-offset-0.5,"top_layer",0,-180);};
 					if(!(Number.isNaN(right))&& right<center){SpawnCube(i-offset,heightmap[i*dim+j],j-offset+0.5,"top_layer",0,0);};
 					if(!(Number.isNaN(up))&& up<center){SpawnCube(i-offset-0.5,heightmap[i*dim+j],j-offset,"top_layer",0,-90);};
 					if(!(Number.isNaN(down))&& down<center){SpawnCube(i-offset+0.5,heightmap[i*dim+j],j-offset,"top_layer",0,-270);};
-					
-					//top face
-					SpawnCube(i-offset,heightmap[i*dim+j]+0.5,j-offset,"top_layer",-90,0);
 
+					cubes++;
 				}
 			}
 
 			// Fase di Fix dei "buchi" relativi a elevati dislivelli tra due cubi adiacenti.
-			// VEDI SCHEMA SUL REPORT PROGETTO PER UNA DESCRIZIONE PIù ACCURATA. 
+			// VEDI SCHEMA SUL REPORT PROGETTO PER UNA DESCRIZIONE PIù ACCURATA. (TODO)
 			for(i = 0; i<dim; i++){
 				for(j = 0; j<dim; j++){
 
@@ -165,10 +179,7 @@
 					up = heightmap[(i-1)*dim+j];
 					down = heightmap[(i+1)*dim+j];
 
-					//...and pick the lowest one...
-					//min = Math.min(left,right,up,down);
-
-					if(!(Number.isNaN(left))){
+					if(!(Number.isNaN(left)) && j != 0){
 						if(left<center){
 							diff=center-left-1;
 							for(k=0;k<diff;k++){
@@ -176,7 +187,7 @@
 							}
 						}
 					}
-					if(!(Number.isNaN(right))){
+					if(!(Number.isNaN(right)) && j != dim-1){
 						if(right<center){
 							diff=center-right-1;
 							for(k=0;k<diff;k++){
@@ -202,6 +213,32 @@
 					}
 				}
 			}
+			
+			// generazione "pareti" terreno
+			for(i = 0; i<dim; i++){
+				for(j = 0; j<=heightmap[i]+5; j++){
+					SpawnCube(-0.5-offset,j-5,i-offset,"bottom_layer",0,-90);
+				}
+			}
+
+			for(i = 0; i<dim; i++){
+				for(j = 0; j<=heightmap[heightmap.length-dim+i]+5; j++){
+					SpawnCube(-0.5+offset,j-5,i-offset,"bottom_layer",0,-270);	
+				}
+			}
+
+			for(i = 0; i<dim; i++){
+				for(j = 0; j<=heightmap[i*dim]+5; j++){
+					SpawnCube(i-offset,j-5,-offset-0.5,"bottom_layer",0,-180);	
+				}
+			}
+
+			for(i = 0; i<=dim; i++){
+				for(j = 0; j<=heightmap[(i*dim)-1]+5; j++){
+					SpawnCube(i-offset-1,j-5,+offset-0.5,"bottom_layer",0,0);	
+				}
+			}
+
 		}
 
 		/*
@@ -241,26 +278,8 @@
 			layer-> serve a specificare a che layer il cubo spawnato deve appartenere (bottom_layer o top_layer)
 		*/
 		function SpawnCube(x,y,z,layer,x_deg,y_deg){	
-			/*
-			var geometry = new THREE.BoxGeometry(1,1,1);	// Creazione della geometry, del mesh & del materiale per i cubi
-			var material = new THREE.MeshPhongMaterial( {
-				wireframe:false,
-				color: "white" });
-			var cube = new THREE.Mesh( geometry, material );
 
-			cube.castShadow=true;		// Cube Shadows
-			cube.receiveShadow=true;
-
-			cube.position.set(x,y,z);	// Cube position.set
-			*/
-
-			var geometry = new THREE.PlaneGeometry(1,1,1,1);
-			var material = new THREE.MeshPhongMaterial( {
-				wireframe:false,
-				color: "red" });
-			var face = new THREE.Mesh( geometry, material );
-			face.castShadow=true;
-			face.receiveShadow=true;
+			face = cube_face.clone();	// inizializza un clone del modello di riferimento
 			face.rotation.x = THREE.Math.degToRad(x_deg);
 			face.rotation.y = THREE.Math.degToRad(y_deg);
 			face.position.set(x,y,z);
@@ -273,6 +292,8 @@
 				//console.log("added bottom");
 				bottom_layer_geometry.mergeMesh(face);
 			}
+
+			faces++;
 		}
 
 		// return array with height data from img (0 to 255),
@@ -312,6 +333,7 @@
 			GenerateGrass();
 		}
 
+		// TO FINISH AND FIX.
 		function GenerateGrass(){
 			var heightmap = normalized_heightmap;
 			var grass_quantity = heightmap.length * grass_density;
@@ -351,6 +373,31 @@
 				g.updateMatrix;
 				vegetation_layer_geometry.merge(g);
 			}
+		}
+
+		function createCubeFace(){
+			var geometry = new THREE.PlaneGeometry(1,1,1,1);
+			var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "red" });
+			face = new THREE.Mesh( geometry, material );
+			face.castShadow=true;
+			face.receiveShadow=true;
+			return face;
+		}
+
+		function generateGround(){
+			var geometry = new THREE.PlaneGeometry(2500,2500,1,1);
+			var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "white" });
+			var ground = new THREE.Mesh( geometry, material );
+			ground.castShadow=true;
+			ground.receiveShadow=true;
+			ground.position.set(0,0.1-5,0);
+			ground.rotation.x = THREE.Math.degToRad(-90);
+			scene.add(ground);
+			faces++;faces++;
 		}
 		
 		function Update() {
@@ -417,9 +464,10 @@
 
 		// MAIN CODE GOES HERE //
 		
+
 		Start();
 		Update();
-			
+		
 		</script>
 	</body>
 </html>
