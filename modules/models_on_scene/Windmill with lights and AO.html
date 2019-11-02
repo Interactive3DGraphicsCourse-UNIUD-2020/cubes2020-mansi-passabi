@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Vari oggetti luce/ombre</title>
+		<title>Mulino AO</title>
 		<style>
 		
 		body {
@@ -26,6 +26,11 @@
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
+
+		var clock = new THREE.Clock();
+		var delta, time;
+
+		var windmill_blades;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -40,7 +45,7 @@
 			renderer.shadowMap.enabled = true;
 			document.body.appendChild( renderer.domElement );
 			
-			camera.position.set(5,10,9);
+			camera.position.set(20,20,15);
 			camera.lookAt( new THREE.Vector3(0,0,0));
 
 			hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -83,152 +88,60 @@
 			// uncomment if you need to draw coordinate axes when building the scene
 			//Coordinates.drawAllAxes();
 
-			//////////////
-			// OGGETTI //
-			////////////
+			///////////////
+			// WINDMILL //
+			/////////////
 
 			var loader = new THREE.ObjectLoader();
 
-			// Aggiungo l'erba
+			// Aggiungo la parte principale del mulino
 			loader.load(
 				// resource URL
-				"../../models/grass1.json",
+				"../../models/windmill_AO.json",
 				// onLoad callback
 				// Here the loaded data is assumed to be an object
 				function ( obj ) {
 					// Add the loaded object to the scene
-					grass = obj;
-					grass.position.x = 10;
-
-					scene.add( grass );
-				},
-				// onProgress callback
-				function ( xhr ) {
-					console.log( ('Erba: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
-				},
-				// onError callback
-				function ( err ) {
-					console.error( 'Errore di importazione' );
-				}
-			);
-
-			// Aggiungo il fungo rosso
-			loader.load(
-				// resource URL
-				"../../models/mushroom_red.json",
-				// onLoad callback
-				// Here the loaded data is assumed to be an object
-				function ( obj ) {
-					// Add the loaded object to the scene
-					mushroom_red = obj;
-					mushroom_red.position.x = 10;
-					mushroom_red.position.z = 2;
+					windmill = obj;
 					
-					scene.add( mushroom_red );
+					scene.add( windmill );
 				},
 				// onProgress callback
 				function ( xhr ) {
-					console.log( ('Fungo rosso: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+					console.log( ('Mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
 				},
 				// onError callback
 				function ( err ) {
 					console.error( 'Errore di importazione' );
-				}
+				},
 			);
 
-			// Aggiungo il fungo marrone
+			// Aggiungo l'oggetto "windmill_blades" del mulino
 			loader.load(
 				// resource URL
-				"../../models/mushroom_brown.json",
+				"../../models/windmill_blades_AO.json",
 				// onLoad callback
 				// Here the loaded data is assumed to be an object
 				function ( obj ) {
 					// Add the loaded object to the scene
-					mushroom_brown = obj;
-					mushroom_brown.position.x = 10;
-					mushroom_brown.position.z = 4;
+					windmill_blades = obj;
+					windmill_blades.position.y = 11.5;
+					windmill_blades.position.x = 1.5;
+					windmill_blades.position.z = -0.5;
 					
-					scene.add( mushroom_brown );
+					scene.add( windmill_blades );
 				},
 				// onProgress callback
 				function ( xhr ) {
-					console.log( ('Fungo marrone: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+					console.log( ('Pale mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
 				},
 				// onError callback
 				function ( err ) {
 					console.error( 'Errore di importazione' );
-				}
+				},
 			);
 
-			// Aggiungo l'albero di mele
-			loader.load(
-				// resource URL
-				"../../models/apple_tree.json",
-				// onLoad callback
-				// Here the loaded data is assumed to be an object
-				function ( obj ) {
-					// Add the loaded object to the scene
-					apple_tree = obj;
-					apple_tree.position.y = 2;
-					
-					scene.add( apple_tree );
-				},
-				// onProgress callback
-				function ( xhr ) {
-					console.log( ('Albero di mele: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
-				},
-				// onError callback
-				function ( err ) {
-					console.error( 'Errore di importazione' );
-				}
-			);
 
-			// Aggiungo l'albero di betulla (versione autunno)
-			loader.load(
-				// resource URL
-				"../../models/birch_tree_autumn.json",
-				// onLoad callback
-				// Here the loaded data is assumed to be an object
-				function ( obj ) {
-					// Add the loaded object to the scene
-					birch_tree_autumn = obj;
-					birch_tree_autumn.position.z = 10;
-					
-					scene.add( birch_tree_autumn );
-				},
-				// onProgress callback
-				function ( xhr ) {
-					console.log( ('Albero di betulla (autunno): ' + xhr.loaded / xhr.total * 100) + '% caricato' );
-				},
-				// onError callback
-				function ( err ) {
-					console.error( 'Errore di importazione' );
-				}
-			);
-
-			// Aggiungo l'albero di betulla
-			loader.load(
-				// resource URL
-				"../../models/birch_tree.json",
-				// onLoad callback
-				// Here the loaded data is assumed to be an object
-				function ( obj ) {
-					// Add the loaded object to the scene
-					birch_tree = obj;
-					birch_tree.position.z = -10;
-					
-					scene.add( birch_tree );
-				},
-				// onProgress callback
-				function ( xhr ) {
-					console.log( ('Albero di betulla (autunno): ' + xhr.loaded / xhr.total * 100) + '% caricato' );
-				},
-				// onError callback
-				function ( err ) {
-					console.error( 'Errore di importazione' );
-				}
-			);
-			
 			controls = new THREE.OrbitControls( camera );
 			controls.addEventListener( 'change', Render );
 		
@@ -238,6 +151,16 @@
 			requestAnimationFrame( Update );
 			controls.update();
 			stats.update();
+
+			// Rotazione windmill_blades (in base al tempo)
+			
+			delta = clock.getDelta();
+
+			// controllo che il tipo sia oggetto e non undefined (la rotazione di un oggetto undefined porterebbe ad un errore!)
+			if (typeof windmill_blades == 'object') {
+				windmill_blades.rotation.z += 10 * delta * Math.PI / 180;
+			}
+
 			Render();
 		}
 		
