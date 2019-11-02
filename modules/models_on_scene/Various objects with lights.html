@@ -26,11 +26,6 @@
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
-
-		var clock = new THREE.Clock();
-		var delta, time;
-
-		var windmill_blades;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -163,6 +158,28 @@
 					console.error( 'Errore di importazione' );
 				}
 			);
+
+			// Aggiungo l'albero di mele
+			loader.load(
+				// resource URL
+				"../../models/apple_tree.json",
+				// onLoad callback
+				// Here the loaded data is assumed to be an object
+				function ( obj ) {
+					// Add the loaded object to the scene
+					apple_tree = obj;
+					
+					scene.add( apple_tree );
+				},
+				// onProgress callback
+				function ( xhr ) {
+					console.log( ('Albero di mele: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+				},
+				// onError callback
+				function ( err ) {
+					console.error( 'Errore di importazione' );
+				}
+			);
 			
 			controls = new THREE.OrbitControls( camera );
 			controls.addEventListener( 'change', Render );
@@ -173,18 +190,6 @@
 			requestAnimationFrame( Update );
 			controls.update();
 			stats.update();
-
-			// Rotazione windmill_blades (in base al tempo)
-			
-			delta = clock.getDelta();
-
-			// controllo che il tipo sia oggetto e non undefined (la rotazione di un oggetto undefined porterebbe ad un errore!)
-			if (typeof windmill_blades == 'object') {
-				windmill_blades.rotation.x += 10 * delta * Math.PI / 180;
-			}
-
-			console.log(0.5 * delta/1000 * Math.PI/180);
-
 			Render();
 		}
 		

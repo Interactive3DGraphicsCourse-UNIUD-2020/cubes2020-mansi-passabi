@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Wow, there's music!</title>
+		<title>Primi test GUI</title>
 		<style>
 		
 		body {
@@ -10,14 +10,18 @@
 			overflow: hidden;
 		}
 		
-		canvas {
-			display: block;
+		canvas { 
+			width: 100%; 
+			height: 100%;
+		}
+
+		#GUI_container {
+			width: 300px;
+			height: 100px;
+			background-color: lightblue;
 			position: absolute;
-			top: 0;
-			left: 0;
-			border: none;
-			margin: 0;
-			z-index: -1;
+			right: 1vw;
+			top: 1vw;
 		}
 	
 	</style>
@@ -27,12 +31,21 @@
 		<script src="../../lib/OrbitControls.js"></script>
 	</head>
 	<body>
+
+		<div id="GUI_container">
+			<p>MUSIC <button onclick="musicOn()">ON</button><button onclick="musicOff()">OFF</button></p>
+		</div>
+
+
 		
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
 
-		var background_music;
+		var clock = new THREE.Clock();
+		var delta, time;
+
+		var windmill_blades;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -47,19 +60,8 @@
 			renderer.shadowMap.enabled = true;
 			document.body.appendChild( renderer.domElement );
 			
-			camera.position.set(10,8,8);
+			camera.position.set(20,20,15);
 			camera.lookAt( new THREE.Vector3(0,0,0));
-			
-			// MINECRAFT CUBE 
-			var geometry = new THREE.BoxGeometry(1,1,1);
-			var texture = THREE.ImageUtils.loadTexture('../../textures/11635.jpg');
-			var material = new THREE.MeshPhongMaterial( { map: texture } );
-			var cube = new THREE.Mesh( geometry, material );
-			cube.castShadow = true;
-			cube.receiveShadow = true;
-			
-			scene.add( cube );
-			// end of cube
 
 			hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
 			hemiLight.color.setHSL( 0.6, 1, 0.6 );
@@ -101,47 +103,78 @@
 			// uncomment if you need to draw coordinate axes when building the scene
 			//Coordinates.drawAllAxes();
 
-			////////////
-			// MUSIC //
-			//////////
+			///////////////
+			// WINDMILL //
+			/////////////
 
-			// create an AudioListener and add it to the camera
-			var listener = new THREE.AudioListener();
-			camera.add( listener );
+			var loader = new THREE.ObjectLoader();
 
-			// create a global audio source
-			background_music = new THREE.Audio( listener );
+			// Aggiungo la parte principale del mulino
+			loader.load(
+				// resource URL
+				"../../models/windmill.json",
+				// onLoad callback
+				// Here the loaded data is assumed to be an object
+				function ( obj ) {
+					// Add the loaded object to the scene
+					windmill = obj;
+					
+					scene.add( windmill );
+				},
+				// onProgress callback
+				function ( xhr ) {
+					console.log( ('Mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+				},
+				// onError callback
+				function ( err ) {
+					console.error( 'Errore di importazione' );
+				},
+			);
 
-			// load a background_music and set it as the Audio object's buffer
-			var audioLoader = new THREE.AudioLoader();
-			audioLoader.load( '../../sounds/Relaxing_Background_Music.mp3', function( buffer ) {
-				background_music.setBuffer( buffer );
-				background_music.setLoop( true );
-				background_music.setVolume( 0.5 );
-				background_music.play();
-			});
-		
+			// Aggiungo l'oggetto "windmill_blades" del mulino
+			loader.load(
+				// resource URL
+				"../../models/windmill_blades.json",
+				// onLoad callback
+				// Here the loaded data is assumed to be an object
+				function ( obj ) {
+					// Add the loaded object to the scene
+					windmill_blades = obj;
+					windmill_blades.position.y = 11.5;
+					windmill_blades.position.x = 1.5;
+					windmill_blades.position.z = -0.5;
+					
+					scene.add( windmill_blades );
+				},
+				// onProgress callback
+				function ( xhr ) {
+					console.log( ('Pale mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+				},
+				// onError callback
+				function ( err ) {
+					console.error( 'Errore di importazione' );
+				},
+			);
+
+
 			controls = new THREE.OrbitControls( camera );
 			controls.addEventListener( 'change', Render );
 		
 		}
-
+		
 		function Update() {
 			requestAnimationFrame( Update );
 			controls.update();
 			stats.update();
 
-			// GESTIONE MUSICA - To Do: da fare con GUI
-			document.addEventListener("keydown", onDocumentKeyDown, false);
-			function onDocumentKeyDown(event) {
-				var keyCode = event.which;
-				if (keyCode == 77) {              // m
-					background_music.play();
-				}
-				else if (keyCode == 83) {		  // s
-					background_music.pause();
-				}
-			};
+			// Rotazione windmill_blades (in base al tempo)
+			
+			delta = clock.getDelta();
+
+			// controllo che il tipo sia oggetto e non undefined (la rotazione di un oggetto undefined porterebbe ad un errore!)
+			if (typeof windmill_blades == 'object') {
+				windmill_blades.rotation.z += 10 * delta * Math.PI / 180;
+			}
 
 			Render();
 		}
@@ -152,8 +185,9 @@
 		}
 		
 		Start();
+
 		Update();
-			
+
 		</script>
 	</body>
 </html>
