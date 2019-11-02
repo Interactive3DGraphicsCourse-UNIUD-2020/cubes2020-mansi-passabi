@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Mulino Basic</title>
+		<title>Cubo con AO vs cubo senza AO</title>
 		<style>
 		
 		body {
@@ -26,11 +26,6 @@
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
-
-		var clock = new THREE.Clock();
-		var delta, time;
-
-		var windmill_blades;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -45,7 +40,7 @@
 			renderer.shadowMap.enabled = true;
 			document.body.appendChild( renderer.domElement );
 			
-			camera.position.set(20,20,15);
+			camera.position.set(5,10,9);
 			camera.lookAt( new THREE.Vector3(0,0,0));
 
 			hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -88,60 +83,35 @@
 			// uncomment if you need to draw coordinate axes when building the scene
 			//Coordinates.drawAllAxes();
 
-			///////////////
-			// WINDMILL //
-			/////////////
+			//////////////
+			// OGGETTI //
+			////////////
 
 			var loader = new THREE.ObjectLoader();
 
-			// Aggiungo la parte principale del mulino
-			loader.load(
+            loader.load(
 				// resource URL
-				"../../models/windmill.json",
+				"../../models/cube_AO.json",
 				// onLoad callback
 				// Here the loaded data is assumed to be an object
 				function ( obj ) {
 					// Add the loaded object to the scene
-					windmill = obj;
+					cube_AO = obj;
 					
-					scene.add( windmill );
+                    scene.position.z = 2;
+
+                    scene.add( cube_AO );
 				},
 				// onProgress callback
 				function ( xhr ) {
-					console.log( ('Mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
+					console.log( ('Cubo con AO: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
 				},
 				// onError callback
 				function ( err ) {
 					console.error( 'Errore di importazione' );
-				},
+				}
 			);
-
-			// Aggiungo l'oggetto "windmill_blades" del mulino
-			loader.load(
-				// resource URL
-				"../../models/windmill_blades.json",
-				// onLoad callback
-				// Here the loaded data is assumed to be an object
-				function ( obj ) {
-					// Add the loaded object to the scene
-					windmill_blades = obj;
-					windmill_blades.position.y = 11.5;
-					windmill_blades.position.x = 1.5;
-					windmill_blades.position.z = -0.5;
-					
-					scene.add( windmill_blades );
-				},
-				// onProgress callback
-				function ( xhr ) {
-					console.log( ('Pale mulino: ' + xhr.loaded / xhr.total * 100) + '% caricato' );
-				},
-				// onError callback
-				function ( err ) {
-					console.error( 'Errore di importazione' );
-				},
-			);
-
-
+			
 			controls = new THREE.OrbitControls( camera );
 			controls.addEventListener( 'change', Render );
 		
@@ -151,16 +121,6 @@
 			requestAnimationFrame( Update );
 			controls.update();
 			stats.update();
-
-			// Rotazione windmill_blades (in base al tempo)
-			
-			delta = clock.getDelta();
-
-			// controllo che il tipo sia oggetto e non undefined (la rotazione di un oggetto undefined porterebbe ad un errore!)
-			if (typeof windmill_blades == 'object') {
-				windmill_blades.rotation.z += 10 * delta * Math.PI / 180;
-			}
-
 			Render();
 		}
 		

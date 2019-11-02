@@ -32,4 +32,20 @@
 - Modellazione alberi
   - modello albero di mele
 
+- Creato branch per la modifica di alcuni modelli
+  - perfezionato albero di mele (aggiunta trasparenza)
+  - modificato il tetto del mulino
+  - sistemate alcune ombre non corrette del mulino
+  - aggiunte ragnatele al mulino
+  - aggiunto albero tipo betulla (versione normale)
+  - aggiunto albero tipo betulla (versione autunno)
+
+- Idea: personaggio incorporeo (fantastimo) che fluttua sulla mappa e rende possibile visitare il mondo
+
+- Idea: aggiungere occlusione ambientale
+  - ricerche
+  - primi test su 2 cubi (uno con AO, uno senza)
+  - aggiunta dell'AO sul mulino
+  - vari test sulle altre impostazioni disponibili in three js editor - fallimentari, nulla di utile al momento
+
 
