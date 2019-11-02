@@ -12,3 +12,24 @@
 
 - Completato il modello del mulino
 - Commit su Git
+
+---
+
+## 2 Novembre
+
+### Passabi
+
+- Creato branch per sperimentare con luci e ombre
+- Riscontrato problema quando vengono cambiate le impostazioni usando la funzione *onDocumentKeyDown*
+  - Soluzione: implementare una GUI --> primi test con div HTML e CSS
+
+- Implementazione GUI
+  - CSS simile al contatore FPS
+  - Implementato il controllo musica ON/OFF
+  - Implementata la gestione della qualita della luce direzionale
+  - Implementate informazioni sulla mappa e visualizzazione di Heightmap usata
+  
+- Modellazione alberi
+  - modello albero di mele
+
+
