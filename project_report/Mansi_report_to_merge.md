@@ -22,3 +22,17 @@ Aggiornata la ROADMAP:
 
 
 
+## 3 Novembre
+
+### Mansi
+
+- rilettura e piccole sistemazioni del codice.
+- sistemazione di alcune texture.
+- alcune sperimentazioni con l'ottimizzazione degli oggetti caricati tramite ObjectLoader senza alcun risultato.
+- visione della lezione sugli shaders.
+
+## 4 Novembre
+
+### Mansi & Passabì
+
+- Colloquio con il professore a fine lezione
