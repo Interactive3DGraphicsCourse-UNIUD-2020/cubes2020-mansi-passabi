@@ -48,4 +48,9 @@
   - aggiunta dell'AO sul mulino
   - vari test sulle altre impostazioni disponibili in three js editor - fallimentari, nulla di utile al momento
 
+## 4 Novembre
 
+### Passabi
+
+- Fix minori codice
+- Modifiche alla GUI per quanto riguarda la gestione delle ombre

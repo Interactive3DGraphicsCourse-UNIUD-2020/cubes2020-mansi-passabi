@@ -99,19 +99,19 @@
 		var delta, time;
 
 		// -------------------------- Parametro per qualita ombra ------------------------------------------------------------------------
-		var shadowQuality = 1;
+		var shadowQuality = 3;
 
 		// -------------------------- Background Music -----------------------------------------------------------------------------------
 		var background_music;
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO ------------------------------------------------------------------
-		var heightmap_img = "../../textures/heightmap5.png";		// path dell'img per l'heightmap
-		var top_texture_path = "../../textures/grass_top_reskin.png";	    // texture del top_layer (cubi superficie)
-		var bottom_texture_path = "../../textures/dirt_top.jpg";	// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var altezza_max_terreno = 25;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var grass_density = 0.1; 							// from 0 to 100 (esempio: 0.32 = 32%)
-		var sea_level = 0; 									// not used jet
-		var wireframe_view = false;							// cubi wireframe view ON/OFF
+		var heightmap_img = "../../textures/heightmaps/heightmap5.png";			// path dell'img per l'heightmap
+		var top_texture_path = "../../textures/grass_top_reskin.png";	    	// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "../../textures/dirt_top.png";				// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var altezza_max_terreno = 25;											// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var grass_density = 0.1; 												// from 0 to 100 (esempio: 0.32 = 32%)
+		var sea_level = 0; 														// not used jet
+		var wireframe_view = false;												// cubi wireframe view ON/OFF
 		// -------------------------------------------------------------------------------------------------------------------------------
 
 		function Start() {
@@ -686,7 +686,7 @@
 			}
 		}
 		function betterShadow() {
-			if (shadowQuality < 3) {
+			if (shadowQuality < 5) {
 				shadowQuality++;
 				
 				// Ricalcolo dell'ombra
