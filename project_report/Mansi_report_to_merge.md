@@ -24,15 +24,45 @@ Aggiornata la ROADMAP:
 
 ## 3 Novembre
 
-### Mansi
+### Mansi:
 
 - rilettura e piccole sistemazioni del codice.
 - sistemazione di alcune texture.
 - alcune sperimentazioni con l'ottimizzazione degli oggetti caricati tramite ObjectLoader senza alcun risultato.
 - visione della lezione sugli shaders.
 
+
 ## 4 Novembre
 
-### Mansi & Passabì
+### Mansi & Passabì:
 
-- Colloquio con il professore a fine lezione
+- Colloquio con il professore a fine lezione relativa alla problematica riscontrata (basse performance con un'alto numero di istanze di oggeti caricati tramite Objectloader).
+  - Soluzioni possibili:
+    - Eseguire il merge dei vari mesh come effettuato con i cubi(facce) (il mesh del terreno).
+    - Condividere geometria e materiale per ciascuna istanza dell'oggeto, al fine di ridurre drasticamente i cambi di contesto effettuati dalla gpu. (in astratto "passare da n oggetti diversi a n istanze di un solo oggetto").
+
+
+### Mansi:
+
+- Rilettura del codice & aggiornamento del report.
+- Aggiornamento della ROADMAP:
+
+| n° | Features TODO List | Priorita' |
+| :---        |    :----:   |          ---: |
+| 1 | Fixing dell'algoritmo di generazione/spawning della vegetazione nel terreno: Sperimentare le soluzioni proposte precedentemente. | Alta |
+| 2 | Introdurre l'entità cespuglio da posizionare randomicamente nella scena (idea: parametro dimensione che varia randomicamente) | Alta |
+| 3 | Commentare e fare il refactoring del codice prima della consegna | Obbligatoria |
+| 4 | Creazione della scena finale da presentare come lavoro concluso | Obbligatoria | 
+| 5 | Valutare come sostituire l'erba billboard non consentita dal progetto in quanto "non fatta a cubi" | Bassa |
+| 6 | Implementazione dell'ambient occlusion | Bassa |
+| 7 | Aggiunta di qualche shader? sperimentare ed eventualemte aggiungere dove sensato. | Bassa |
+| 8 | Idea: Aggiunta di un sistema di generazione di superfici d’acqua. | Bassa |
+| 9 | La telecamera si posiziona automaticamente in una posizione coerente in base alle dimensioni del terreno generato (si adatta alle varie dimensioni). | Bassa |
+
+### 5 Novembre
+
+### Mansi:
+
+- Introdotta l'entità cespuglio e completata l'implementazione della sua generazione e posizionamento randomico nel terreno. (Non si è verificato il problema di performance, i cespugli vengono mergiati in un unico mesh alla fine della loro generazione.)
+- Pulizia e Commento del codice.
+- screenshots, aggiornamento report.md, commit su git.
