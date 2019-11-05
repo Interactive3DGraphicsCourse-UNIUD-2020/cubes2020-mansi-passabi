@@ -118,11 +118,15 @@ Scena di base (minima da soddisfare i requisiti della consegna)
   - Aggiunta ombre
   - Test su starting code with lights
 
+![pala mulino](img/a.gif)
+
 
 - Modellata l’erba
   - Ho usato 4 piani incrociati
   - Risolto problema trasparenza non completa (usando test z-alpha)
   - Problema ombra da risolvere
+
+![modello erba](img/b.png)
 
 - Inizio modellazione struttura del mulino
 
@@ -196,10 +200,67 @@ Scena di base (minima da soddisfare i requisiti della consegna)
   - Risolto con un controllo sul tipo di oggetto prima di effettuare la rotazione
 
 - Completato il modello del mulino
+
+  ![mulino completo](img/c.png)
+
 - Commit su Git
   
 ---
 ## 2 Novembre
 
 ### Mansi
+
 **Obiettivi del giorno**: refactoring, ottimizzazione del codice, ricerche riguardo la gestione di un elevato numero di “oggetti json”.
+
+### Passabi
+
+- Creato branch per sperimentare con luci e ombre
+- Riscontrato problema quando vengono cambiate le impostazioni usando la funzione *onDocumentKeyDown*
+  - Soluzione: implementare una GUI --> primi test con div HTML e CSS
+
+- Implementazione GUI
+  - CSS simile al contatore FPS
+  - Implementato il controllo musica ON/OFF
+  - Implementata la gestione della qualita della luce direzionale
+  - Implementate informazioni sulla mappa e visualizzazione di Heightmap usata
+
+    ![GUI](img/d.gif)
+  
+- Modellazione alberi
+  - modello albero di mele
+
+    ![albero di mele](img/e.png)
+
+- Creato branch per la modifica di alcuni modelli
+  - perfezionato albero di mele (aggiunta trasparenza)
+  - modificato il tetto del mulino
+  - sistemate alcune ombre non corrette del mulino
+  - aggiunte ragnatele al mulino
+  - aggiunto albero tipo betulla (versione normale)
+  - aggiunto albero tipo betulla (versione autunno)
+
+  ![alberi](img/f.png)
+
+- Idea: personaggio incorporeo (fantastimo) che fluttua sulla mappa e rende possibile visitare il mondo
+
+- Idea: aggiungere occlusione ambientale
+  - ricerche
+  - primi test su 2 cubi (uno con AO, uno senza)
+  - aggiunta dell'AO sul mulino
+  - vari test sulle altre impostazioni disponibili in three js editor - fallimentari, nulla di utile al momento
+
+  ![mulino con ao](img/g.png)
+
+## 4 Novembre
+
+### Passabi
+
+- Fix minori codice
+- Modifiche alla GUI per quanto riguarda la gestione delle ombre
+
+## 5 Novembre
+
+### Passabi
+
+- Aggiunte immagini al log markdown
+- Spostamento log dal file personale al file condiviso 
