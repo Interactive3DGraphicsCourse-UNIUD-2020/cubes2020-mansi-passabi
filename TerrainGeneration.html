@@ -44,6 +44,7 @@
 
 		var vegetation_layer_mesh,vegetation_layer_geometry; // not used? fix grass mesh merging
 		var bushes_mesh, bushes_geometry; // mesh e geometria complessiva di tutti i cespugli
+		var rocks_mesh, rocks_geometry; //mesh e geometria complessiva di tutte le rocce
 
 		// -------------------------- Models -----------------------------------------------------------------------------------------------------
 		var grass1;		// Modello dell'erba
@@ -51,14 +52,16 @@
 		
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA ------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap5.png";		// path dell'img da utilizzare come heightmap
+		var heightmap_img = "textures/heightmaps/heightmap6.png";		// path dell'img da utilizzare come heightmap
 		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
 		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
 		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
+		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
 		var altezza_max_terreno = 60;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var grass_density = 0.25; 							// densità superficiale dell'erba -> from 0 to 100 (esempio: 0.32 = 32%)
-		var bush_density = 0.21;							// densità superficiale dei cespugli -> from 0 to 100
-		var tree_density = 0;								// densità 
+		var grass_density = 0.1; 							// densità superficiale dell'erba -> from 0 to 100 (esempio: 0.32 = 32%)
+		var bush_density = 0.035;								// densità superficiale dei cespugli -> from 0 to 100
+		var tree_density = 0.04;
+		var rocks_density = 0.04;							// densità rocce
 		var sea_level = 5; 									// not used jet (implementa l'acqua)
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
 		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
@@ -84,6 +87,7 @@
 			bottom_layer_geometry = new THREE.Geometry();
 			vegetation_layer_geometry = new THREE.Geometry(); // not used jet, should be used in future?
 			bushes_geometry = new THREE.Geometry();
+			rocks_geometry = new THREE.Geometry();
 
 			cube_face = createCubeFace();	// Crea e "memorizza" il modello "faccia del cubo" che verra poi utilizzata per costruire il terreno.
 
@@ -367,7 +371,8 @@
 
 		function GenerateVegetation(){
 			//GenerateGrass(); // bugged for now (performance issue)
-			GenerateBushes()
+			GenerateSmallObjects("bushes",bush_density);
+			GenerateSmallObjects("rocks",rocks_density);
 		}
 
 		// Viene chiamata dopo GenerateVegetation(); si occupa (similmente a spawnTerrain) di inizializzare su scena i mesh della vegetazione precedentemente generati dal generateVegetation.
@@ -377,10 +382,18 @@
 			var bushes_texture = THREE.ImageUtils.loadTexture(bushes_texture_path);
 			var bushes_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: bushes_texture});
 			bushes_mesh = new THREE.Mesh(bushes_geometry,bushes_material);
+			bushes_mesh.receiveShadow=true;
+			bushes_mesh.castShadow=true;
 			scene.add(bushes_mesh);
 			//---------------------------------------------------------------------
 
-			// Spawning del grass mesh (??) ...
+			// Spawning del rocks mesh
+			var rocks_texture = THREE.ImageUtils.loadTexture(rocks_texture_path);
+			var rocks_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: rocks_texture});
+			rocks_mesh = new THREE.Mesh(rocks_geometry,rocks_material);
+			rocks_mesh.receiveShadow=true;
+			rocks_mesh.castShadow=true;
+			scene.add(rocks_mesh);
 
 			//---------------------------------------------------------------------
 
@@ -390,54 +403,81 @@
 
 		}
 
-		// Si occupa della generazione del mesh dei cespugli. Essi vengono posizionati in posizioni randomiche.
-		// La loro quantità dipende dal parametro bushes_density. Hanno dimensioni randomiche (viene applicata una scalatura random.)
-		function GenerateBushes(){
 
+		// Si occupa della generazione dei mesh dei piccoli oggetti che popolano la scena. Essi vengono posizionati in posizioni randomiche.
+		// La loro quantità dipende dal parametro <type>_density. Hanno dimensioni randomiche (viene applicata una scalatura random.)
+		// TIPOLOGIE:
+		//		---> type: "bushes"
+		//		---> type: "rocks"
+		function GenerateSmallObjects(type,density){
+
+			if(type == "bushes"){
 			//Bush Model creation.
 			var geometry = new THREE.BoxGeometry(1,1,1);	// Creazione della geometry
 			var material = new THREE.MeshPhongMaterial( {
 				wireframe:false,
 				color: "white" });
+			}
 
+			if(type == "rocks"){
+			//Rocks Model creation.
+				var geometry = new THREE.BoxGeometry(1,1,1);	// Creazione della geometry
+				var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "red" });
+
+			}
 
 			var heightmap = normalized_heightmap;
-			var bush_quantity = heightmap.length * bush_density; // Calcolo del numero di bush da generare.
+			var objects_quantity = heightmap.length * density; // Calcolo del numero di small objects da generare.
 
 			var min = 0;
 			var max = heightmap.length;
 			var positions_x = [];	
 
 			// Calcolo di "bush_quantity" posizioni randomiche nel terreno
-			for(i=0;i<bush_quantity;i++){
+			for(i=0;i<objects_quantity;i++){
 				positions_x[i] = Math.floor(Math.random() * (max - min + 1) + min);
 			}
 
 			// Filtro eventuali posizioni doppie (TODO: Cerca un modo più efficiente di farlo, devo per forza fare [array->set->array] ?)
 			var positions = Array.from(new Set(positions_x));
-			
-			// Ciascun cespuglio è un cubo, quindi ha 12 triangoli, ne tengo conto nel conteggio dei poligoni.
-			faces = faces + positions.length*12;
-			console.log("bush quantity: "+ positions.length);
-			
+
+			// Ciascun bush e roccia sono un cubo, quindi ha 12 triangoli, ne tengo conto nel conteggio dei poligoni.
+			if(type == "bushes" || type == "rocks"){faces = faces + positions.length*12;}
+			console.log("small objects quantity [of type:"+type+"]: "+ positions.length);
+
 			var x,z;
 
-			// Itero ciascuna posizione generando ed eseguendo il merge del mesh dell'attuale cespuglio nel mesh complessivo(bushes_mesh) applicando una scalatura random
+			// Itero ciascuna posizione generando ed eseguendo il merge del mesh dell'attuale cespuglio nel mesh complessivo(di appartenenza) applicando una scalatura random
 			for(j=0;j<positions.length;j++){
 				var offset = dim/2;
-				var bush = new THREE.Mesh( geometry, material );
+				var object = new THREE.Mesh( geometry, material );
 				var index = positions[j];
 				x = Math.floor(index/dim);
 				z = index % dim;
 				y = normalized_heightmap[index];	
-				bush.position.set(x-offset,y+1,z-offset);
+				object.position.set(x-offset,y+1,z-offset);
+
+				if(type == "bushes"){
 				min_scale = 0.8;
-				max_scale = 1.2;
-				scale_value = Math.random() * (max_scale-min_scale + 1) + min_scale;
-				bush.scale.set(scale_value,scale_value,scale_value);
-				bushes_geometry.mergeMesh(bush);
+				max_scale = 1.5;
+				scale_value = Math.random() * (max_scale-min_scale) + min_scale;
+				object.scale.set(scale_value,scale_value,scale_value);
+				object.position.y -= 0.1;
+				bushes_geometry.mergeMesh(object);
+				}	// FIX Y POS AFTER SCALING pefectly and not manually
+
+				if(type == "rocks"){
+				min_scale = 0.2;
+				max_scale = 0.4;
+				scale_value = Math.random() * (max_scale-min_scale) + min_scale;		
+				object.scale.set(scale_value,scale_value,scale_value);
+				object.position.y -= 0.4;
+				rocks_geometry.mergeMesh(object);
+				}
 			}
-		}
+}
 
 		// TO FINISH AND FIX.
 		function GenerateGrass(){
