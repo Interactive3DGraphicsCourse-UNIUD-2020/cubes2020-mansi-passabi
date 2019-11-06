@@ -52,22 +52,26 @@
 		
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA ------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap6.png";		// path dell'img da utilizzare come heightmap
+		var heightmap_img = "textures/heightmaps/heightmap1.png";		// path dell'img da utilizzare come heightmap
 		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
 		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
 		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
 		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
-		var altezza_max_terreno = 60;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var altezza_max_terreno = 2;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
 		var grass_density = 0.1; 							// densità superficiale dell'erba -> from 0 to 100 (esempio: 0.32 = 32%)
-		var bush_density = 0.035;								// densità superficiale dei cespugli -> from 0 to 100
+		var bush_density = 0.65;							// densità superficiale dei cespugli -> from 0 to 100
 		var tree_density = 0.04;
-		var rocks_density = 0.04;							// densità rocce
+		var rocks_density = 0.44;							// densità rocce
 		var sea_level = 5; 									// not used jet (implementa l'acqua)
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
 		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
 		var show_axis = false;								// if ON: mostra gli assi x,y,z
 		// ---------------------------------------------------------------------------------------------------------------------------------------
-
+			// Parametri posizionamento dell'edificio della scena (ad esempio: windmill)
+			// attenzione, l'implementazione è da rivedere, è momentanea.
+		var range = 5;
+		var building_offset = 0; // dovrebbe andare tra 0 e heightmap.length (con 0, la zona di posizionamento dell'edificio risulta essere in centro)
+		// ---------------------------------------------------------------------------------------------------------------------------------------
 		function Start() {
 
 			var t_1 = Date.now();	// inizio misurazione tempo di generazione del terreno
@@ -370,7 +374,6 @@
 		}
 
 		function GenerateVegetation(){
-			//GenerateGrass(); // bugged for now (performance issue)
 			GenerateSmallObjects("bushes",bush_density);
 			GenerateSmallObjects("rocks",rocks_density);
 		}
@@ -435,21 +438,46 @@
 			var max = heightmap.length;
 			var positions_x = [];	
 
-			// Calcolo di "bush_quantity" posizioni randomiche nel terreno
+			// Calcolo di "object_quantity" posizioni randomiche nel terreno
 			for(i=0;i<objects_quantity;i++){
 				positions_x[i] = Math.floor(Math.random() * (max - min + 1) + min);
 			}
 
-			// Filtro eventuali posizioni doppie (TODO: Cerca un modo più efficiente di farlo, devo per forza fare [array->set->array] ?)
-			var positions = Array.from(new Set(positions_x));
+			// Rimuovi posizioni intorno all'area in cui verrà posizionato un eventuale edificio (ad es: windmill.json)
+			// Implementazione molto naive e momentanea, TODO: clean the code
 
+			var center = (heightmap.length/2)-dim/2+building_offset;	// centro dell'area
+			var offset = dim/2;											// offset rispetto al centro del terreno
+
+			var forbidden_pos = new Set();
+
+			// calcolo pos proibite per il posizionamento di oggetti (vegetazione etc.)
+			for(i=-range; i<range;i++){
+				for(j=-range;j<range;j++){
+					index = center+(dim*j)+i;
+					forbidden_pos.add(index);
+				}
+			}
+
+			positions_x = new Set(positions_x)
+
+			var forbidden_pos_x = Array.from(forbidden_pos);
+			//rimozione
+			for(k=0;k<forbidden_pos_x.length;k++){
+				positions_x.delete(forbidden_pos_x[k]);
+			}
+
+			// Filtro eventuali posizioni doppie (TODO: Cerca un modo più efficiente di farlo, devo per forza fare [array->set->array] ?)
+			var positions = Array.from(positions_x);
+
+			// TRIANGLES COUNTING:
 			// Ciascun bush e roccia sono un cubo, quindi ha 12 triangoli, ne tengo conto nel conteggio dei poligoni.
 			if(type == "bushes" || type == "rocks"){faces = faces + positions.length*12;}
-			console.log("small objects quantity [of type:"+type+"]: "+ positions.length);
+			console.log("Oggetti che popolano la scena: [di tipo:"+type+"]: "+ positions.length);
 
 			var x,z;
 
-			// Itero ciascuna posizione generando ed eseguendo il merge del mesh dell'attuale cespuglio nel mesh complessivo(di appartenenza) applicando una scalatura random
+			// Itero ciascuna posizione generando ed eseguendo il merge del mesh dell'attuale object<type> nel mesh complessivo(di appartenenza) applicando una scalatura random
 			for(j=0;j<positions.length;j++){
 				var offset = dim/2;
 				var object = new THREE.Mesh( geometry, material );
@@ -469,44 +497,15 @@
 				}	// FIX Y POS AFTER SCALING pefectly and not manually
 
 				if(type == "rocks"){
-				min_scale = 0.2;
-				max_scale = 0.4;
+				min_scale = 0.1;
+				max_scale = 0.3;
 				scale_value = Math.random() * (max_scale-min_scale) + min_scale;		
 				object.scale.set(scale_value,scale_value,scale_value);
-				object.position.y -= 0.4;
+				object.position.y -= 0.5;
 				rocks_geometry.mergeMesh(object);
 				}
 			}
 }
-
-		// TO FINISH AND FIX.
-		function GenerateGrass(){
-			var heightmap = normalized_heightmap;
-			var grass_quantity = heightmap.length * grass_density;
-			console.log("grass quantity: "+grass_quantity);
-			var min = 0;
-			var max = heightmap.length;
-			var positions_x = [];
-
-			for(i=0;i<grass_quantity;i++){
-				positions_x[i] = Math.floor(Math.random() * (max - min + 1) + min);
-			}
-			var positions = Array.from(new Set(positions_x));
-
-			var x,z;
-
-			for(j=0;j<positions.length;j++){
-				var offset = dim/2;
-				var grass = new THREE.Mesh( geometry, material );
-				var index = positions[j];
-				x = Math.floor(index/dim);
-				z = index % dim;
-				y = normalized_heightmap[index];
-				var g = grass1.clone();
-				scene.add(g);	// try fixes
-				g.position.set(x-offset,y+0.9,z-offset);
-			}
-		}
 
 		// Questa funzione viene chiamata una volta, si occupa della generazione della faccia "base" con cui comporremo il terreno successivamente.
 		function createCubeFace(){
@@ -604,5 +603,11 @@
 		Update();
 		
 		</script>
+
+		<!----------------->
+		<!-- CODICE GUI: -->
+
+		<script></script>
+
 	</body>
 </html>
