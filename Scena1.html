@@ -650,6 +650,7 @@
 
 			// Orbit control setup
 			controls = new THREE.OrbitControls( camera );
+			controls.maxPolarAngle = Math.PI/2; 
 			controls.addEventListener( 'change', Render );
 		}
 
