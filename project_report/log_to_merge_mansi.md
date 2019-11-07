@@ -75,3 +75,10 @@ add meet di gruppo
 
 - Preparazione del codice e aggiunta della GUI nella scena insieme a Daniele.
 - Piccoli ritocchi in varie parti del codice. Aggiunta di piccole features minori.
+
+### 7 Novembre
+
+- Ideazione e implementazione della generazione dell'acqua
+- Lavoro sul report e sul readme (presentazione del progetto)
+- screenshot, debugging, commento e sistemazione del codice.
+- definizione degli obbiettivi finali: concludere entro 08/11 sera.
