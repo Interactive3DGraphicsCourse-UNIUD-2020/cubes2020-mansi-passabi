@@ -66,3 +66,12 @@ Aggiornata la ROADMAP:
 - Introdotta l'entità cespuglio e completata l'implementazione della sua generazione e posizionamento randomico nel terreno. (Non si è verificato il problema di performance, i cespugli vengono mergiati in un unico mesh alla fine della loro generazione.)
 - Pulizia e Commento del codice.
 - screenshots, aggiornamento report.md, commit su git.
+
+### 6 Novembre
+
+add meet di gruppo
+
+### Mansi:
+
+- Preparazione del codice e aggiunta della GUI nella scena insieme a Daniele.
+- Piccoli ritocchi in varie parti del codice. Aggiunta di piccole features minori.
