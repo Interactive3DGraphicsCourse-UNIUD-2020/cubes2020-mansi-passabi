@@ -61,3 +61,25 @@ canvas {
 #GUI_container #mapDiv {
     float: right;
 }
+
+.hideDiv {
+    display: none;
+}
+
+/* Loading Screen */
+#loadingScreen {
+    height: 100%;
+    width: 100%;
+    background-color: #122d49;
+    position: absolute;
+    top: 0;
+    color: #12fcfc;
+    z-index: 10000;    /* deve essere davanti a tutto */
+}
+
+#loadingText {
+    font-size: 6vw;
+    margin-top: 8vw;
+    font-family: Monospace;
+    font-style: oblique;
+}
