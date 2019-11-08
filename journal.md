@@ -8,13 +8,13 @@
 - Sperimentazione del codice *heightmap* - implementazione di un primo prototipo di algoritmo di generazione del terreno
 
     Primo Prototipo
-    ![Primo prototipo](img/1.png)
+    ![Primo prototipo](img/journal/1.png)
 
     Primo Prototipo (vista Wireframe)
-    ![Primo prototipo](img/2.png)
+    ![Primo prototipo](img/journal/2.png)
 
     Heightmap usata
-    ![Prima heightmap](img/3.png)
+    ![Prima heightmap](img/journal/3.png)
 
 ###
 - Refactoring del codice
@@ -33,27 +33,27 @@
   - sperimentazione e analisi del primo problema riscontrato: il terreno non risulta uniforme perchè ci sono dei "fori" nei cambi di altezza troppo bruschi, da risolvere
 
     Esempio problema
-  ![problema fori](img/4.png)
+  ![problema fori](img/journal/4.png)
 
     Heightmap utilizzata, creata al fine di accentuare il problema riscontrato
   
-    ![problema fori mappa](img/5.png)
+    ![problema fori mappa](img/journal/5.png)
 
   - Prima sperimentazione che tenta di risolvere il problema, soluzione efficacie ma poco efficiente. Alcuni cubi mancanti vengono inseriti più volte portando ad un overhead nella fase geometry della gpu-pipeline. 
 
     Esempio del terreno "fixato".
     In giallo i cubi aggiunti successivamente alla prima fase di generazione del terreno
-    ![problema fori fix 1](img/6.png)
+    ![problema fori fix 1](img/journal/6.png)
 
   - Seconda Implementazione che risolve senza overhead la problematica dei dislivelli elevati
-    ![problema fori fix 2](img/7.png)
+    ![problema fori fix 2](img/journal/7.png)
 
 - Pulizia del codice
 - Commit su GIT
 - Altri problemi riscontrati: pesante impatto sulle performance da parte del sistema di ombre e illuminazione, artefatti grafici sui “bordi dei cubi”. 40-50 fps su una RTX 2070 – i7 9700K.
 
   esempio di artefatti grafici sui bordi dei cubi
-    ![problema artefatti grafici](img/8.png)
+    ![problema artefatti grafici](img/journal/8.png)
 
 ---
 ## 30 Ottobre
@@ -85,7 +85,7 @@ Scena di base (minima da soddisfare i requisiti della consegna)
 - Test con heightmap più complessa -> 100x100=10K cubi = 120K triangoli
   - framerate inaccettabile (10-15 su Intel UHD 620); bisogna valutare possibili ottimizzazioni.
   - Usare dei cubi non è per niente efficiente, la maggior parte delle facce sono inutili, sono nascoste e potrebbero benissimo non essere renderizzate al fine di aumentare di molto le performance
-    ![heightmap complessa](img/9.png)
+    ![heightmap complessa](img/journal/9.png)
 
 - Obiettivi del giorno: ottimizzazione della generazione del terreno, lato geometry.
   - Soluzione: inizialmente con una heightmap di 100x100 istanziavamo 10K blocchi nella scena, portando ad un elevato overhead nella gestione di un alto numero di mesh. La soluzione attuata unisce i mesh di tutti i cubi in un unico mesh. Il numero di triangoli non cambia, ma WebGl si trova a lavorare con un unico mesh (frutto del merge degli altri).
@@ -94,13 +94,13 @@ Scena di base (minima da soddisfare i requisiti della consegna)
 
     *Le due immagini riportano le differenze di framerate ottenuto, senza variare il risultato finale:* 
     TEST ESEGUITO SU GPU INTEGRATA INTEL UHD620 (heightmap 100x100):
-    ![differenza framerate](img/10.png)
+    ![differenza framerate](img/journal/10.png)
 
 - Settato il renderer in high performance.
 - Successive modifiche: I cubi in superficie (erba) vengono mergati in un unico mesh. Allo stesso modo, quelli aggiunti successivamente per coprire i “buchi” vengono mergati in unico mesh “terra”.
 
   Primi test con le texture del terreno:
-  ![texture terrerno - primi test](img/11.png)
+  ![texture terrerno - primi test](img/journal/11.png)
 
 - Vari test di performance su UHD620, Nvidia 940MX, RTX 2070
 
@@ -118,7 +118,7 @@ Scena di base (minima da soddisfare i requisiti della consegna)
   - Aggiunta ombre
   - Test su starting code with lights
 
-![pala mulino](img/a.gif)
+![pala mulino](img/journal/a.gif)
 
 
 - Modellata l’erba
@@ -126,7 +126,7 @@ Scena di base (minima da soddisfare i requisiti della consegna)
   - Risolto problema trasparenza non completa (usando test z-alpha)
   - Problema ombra da risolvere
 
-![modello erba](img/b.png)
+![modello erba](img/journal/b.png)
 
 - Inizio modellazione struttura del mulino
 

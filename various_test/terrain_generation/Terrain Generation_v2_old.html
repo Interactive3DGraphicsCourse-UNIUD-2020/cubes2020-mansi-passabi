@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Terrain Generation</title>
+		<title>Terrain Generation - Mansi & Passabì</title>
 
 		<!-- Bootstrap CSS - Principalmente per customizzare la GUI -->
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -33,25 +33,29 @@
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// -------->>> PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA <<<<-----------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap6.png";		// path dell'img da utilizzare come heightmap
-		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
-		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
-		var water_texture_path = "textures/water_top.jpg";		// texture per l'acqua
-		var trunk_texture_path = "textures/log_oak.png";
-		var fooliage_texture_path = "textures/leaves_birch_opaque.png";
+		var heightmap_img = "textures/heightmaps/heightmap6.png";	// path dell'img da utilizzare come heightmap
+
 		var altezza_max_terreno = 50;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var bush_density = 0.1;							// densità superficiale dei cespugli -> from 0 to 100
-		var tree_density = 0.0425;								// densità superficiale degli alberi -> from 0 to 100
+		var bush_density = 0.1;								// densità superficiale dei cespugli -> from 0 to 100
+		var tree_density = 0.0525;							// densità superficiale degli alberi -> from 0 to 100
 		var rocks_density = 0.25;							// densità superficiale delle roccie -> from 0 to 100
-		var sea_level = 10; 									// water level //FIX: se è maggiore di tutto il terreno, l'algoritmo entra in loop in cerca di posizioni (inesistenti) per la vegetazione.
+		var sea_level = 10; 								// water level //FIX: se è maggiore di tutto il terreno, l'algoritmo entra in loop in cerca di posizioni (inesistenti) per la vegetazione.
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
 		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
 		var show_axis = true;								// if ON: mostra gli assi x,y,z
 		var shadowQuality = 3;								// shadow quality from 1 to 5
 		var altezza_offset = 7;								// quanti strati aggiungere "sotto" il terreno
 		var objects_random_rotation_enabled = true;			// Applica rotazioni random agli oggetti che popolano la scena (alberi etc.)
+
+		// ---->> Textures dei materiali <<----
+		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
+		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
+		var water_texture_path = "textures/water_top.jpg";		// texture per l'acqua
+		var trunk_texture_path = "textures/log_oak.png";		// texture tronco degli alberi
+		var fooliage_texture_path = "textures/leaves_birch_opaque.png";		// texture  chioma degli alberi
+
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		// -------------------------->> Scene Variables <<--------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +100,7 @@
 			var building_offset = 0; // dovrebbe andare tra 0 e heightmap.length (con 0, la zona di posizionamento dell'edificio risulta essere in centro)
 
 			// water animation variable
-			var up = true;var speed = 0.001;var d=0;var w_range=0.9;
+			var water_up = true;var water_speed = 0.0015;var d=0;var w_range=0.9;var water_ready = false;
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
@@ -442,6 +446,7 @@
 				water_layer_mesh.receiveShadow=true;
 				water_layer_mesh.castShadow=true;
 				scene.add(water_layer_mesh);
+				water_ready = true;
 		}
 
 		/* 
@@ -781,15 +786,16 @@
 				building_2.rotation.z += 10 * delta * Math.PI / 180;
 			}
 
-
-			if(up == true){
-				water_layer_mesh.position.y += speed;
-				d=d+speed;
-				if(d>w_range){up=false;}
-			}else if(up == false){
-				water_layer_mesh.position.y -= speed;
-				d=d-speed;
-				if(d<0){up=true;}
+			if(water_ready == true){	// add time...stuff
+				if(water_up == true){
+					water_layer_mesh.position.y += water_speed;
+					d=d+water_speed;
+					if(d>w_range){water_up=false;}
+				}else if(water_up == false){
+					water_layer_mesh.position.y -= water_speed;
+					d=d-water_speed;
+					if(d<0){water_up=true;}
+				}
 			}
 
 			Render();
