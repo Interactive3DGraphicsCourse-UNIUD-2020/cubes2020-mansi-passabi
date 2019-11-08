@@ -78,8 +78,8 @@ canvas {
 }
 
 #loadingText {
-    font-size: 6vw;
-    margin-top: 8vw;
+    font-size: 3vw;
+    margin-top: 6vw;
     font-family: Monospace;
-    font-style: oblique;
+    font-style: absolute;
 }

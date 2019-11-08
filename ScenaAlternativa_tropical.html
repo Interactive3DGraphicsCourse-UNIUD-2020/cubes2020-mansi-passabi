@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Terrain Generation - Mansi & Passabì</title>
+		<title>Tropical - Mansi & Passabì</title>
 
 		<!-- Bootstrap CSS - Principalmente per customizzare la GUI -->
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -33,27 +33,27 @@
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// -------->>> PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA <<<<-----------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap5.png";	// path dell'img da utilizzare come heightmap per la generazione del terreno.
+		var heightmap_img = "textures/heightmaps/heightmap4.png";	// path dell'img da utilizzare come heightmap per la generazione del terreno.
 																	//DEVE essere nxn (non spingersi oltre 250x250 su notebook, max 1000x1000 su desktop performanti)
 
-		var altezza_max_terreno = 30;					// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var bush_density = 0.017;						// densità superficiale dei cespugli -> from 0 to 100
-		var tree_density = 0.0050;						// densità superficiale degli alberi -> from 0 to 100
-		var rocks_density = 0.07;						// densità superficiale delle roccie -> from 0 to 100
+		var altezza_max_terreno = 10;					// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var bush_density = 0.005;						// densità superficiale dei cespugli -> from 0 to 100
+		var tree_density = 0.000;						// densità superficiale degli alberi -> from 0 to 100
+		var rocks_density = 0.075;						// densità superficiale delle roccie -> from 0 to 100
 		var sea_level = 3; 								// altezza dell'acqua (limitata dal codice ad altezza_max_terreno-1)
 		var enable_vegetation = true;					// if ON: viene generata la vegetazione e istanziata
 		var show_axis = false;							// if ON: mostra gli assi x,y,z
 		var shadowQuality = 3;							// shadows quality from 1 to 5
-		var altezza_offset = 7;							// specifica quanti strati aggiungere "sotto" il terreno
+		var altezza_offset = 11;							// specifica quanti strati aggiungere "sotto" il terreno
 		var objects_random_rotation_enabled = true;		// Applica rotazioni random agli oggetti che popolano la scena (alberi etc.)
 		var wireframe_view = false;						// cubi wireframe view ON/OFF
 
 		// ---->> Textures dei materiali <<----
-		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
+		var top_texture_path = "textures/sand_v2.png"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/sand_v3.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var bushes_texture_path = "textures/leaves_birch_opaque.png";		// texture per i cespugli
 		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
-		var water_texture_path = "textures/water_top.jpg";		// texture per l'acqua
+		var water_texture_path = "textures/limpid_water_top.jpg";		// texture per l'acqua
 		var trunk_texture_path = "textures/log_oak.png";		// texture tronco degli alberi
 		var fooliage_texture_path = "textures/leaves_birch_opaque.png";		// texture  chioma degli alberi
 
@@ -62,7 +62,7 @@
 		// -------------------------->> Scene Variables <<--------------------------------------------------------------------------------------------------------------------------------------------
 		var scene, camera, renderer, controls, stats;
 		// --->>> Configurabili: <<<---
-		var camera_pos = 65;				// distanza dalla scena della camera
+		var camera_pos = 45;				// distanza dalla scena della camera
 		var camera_fixed_angle = true;		// la camera non può andare sotto terra se == true
 
 		// -------------------------->> Terrain Variables <<------------------------------------------------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@
 
 		var normalized_heightmap;	// heightmap normalizzata all'altezza voluta (from 0-255 to 0-altezza_max_terreno)
 		var dim;	//dimensione dim x dim dell'immagine utilizzata come heightmap
-		var terrain_is_generated = false;	//diventa true quando il terreno è generato
+		var scene_ready = false;	//diventa true quando il terreno è generato
 			
 		var faces = 0;	// numero di vertici nella scena 		-> (sulla GUI) esclusi quelli del mulino in scena 1
 		var cubes = 0;	// numero di cubi nella scena			-> (sulla GUI)
@@ -96,7 +96,7 @@
 			var clock = new THREE.Clock();	// variabili per le animazioni degli edifici (se caricati)
 			var delta, time;
 			var building_1,building_2;
-			var enable_building = true;	//true solo su scena 1
+			var enable_building = false;	//true solo su scena 1
 			// Parametri posizionamento dell'edificio della scena (ad esempio: windmill)
 			// attenzione, l'implementazione è da rivedere, è momentanea.
 			var range = 7;	//range attorno all'edificio dove non posizionare vegetazione.
@@ -166,7 +166,11 @@
 
 				UpdateGUI();	// Update GUI values
 
-				terrain_is_generated = true;
+				// Posso rimuovere la schermata di caricamento
+					setTimeout(function(){ 
+					scene_ready = true; 
+				}, 1500);
+
 				console.log("Terrain succesfully generated! =)");
 			}
 
@@ -364,10 +368,10 @@
 
 			// Pareti dell'acqua a bordo terreno,similmente con il bottom_layer
 			for(i = 0; i<dim; i++){
-				if(heightmap[i]<sea_level){
-					diff=sea_level-heightmap[i];
+				if(heightmap[i]-1<sea_level){
+					diff=sea_level-heightmap[i]+2;
 					cubes--;
-					for(k=0;k<diff+1;k++){
+					for(k=0;k<diff;k++){
 						SpawnCube(-0.435-offset,sea_level-k,i-offset,"water_layer",0,-90);
 						cubes++;
 					}
@@ -375,10 +379,10 @@
 			}
 
 			for(i = 0; i<dim; i++){
-				if(heightmap[heightmap.length-dim+i]<sea_level){
-					diff=sea_level-heightmap[heightmap.length-dim+i];
+				if(heightmap[heightmap.length-dim+i]-1<sea_level){
+					diff=sea_level-heightmap[heightmap.length-dim+i]+2;
 					cubes--;
-					for(k=0;k<diff+1;k++){
+					for(k=0;k<diff;k++){
 						SpawnCube(-0.545+offset,sea_level-k,i-offset,"water_layer",0,-270);
 						cubes++;
 					}	
@@ -386,10 +390,10 @@
 			}
 
 			for(i = 0; i<dim; i++){
-				if(heightmap[i*dim]<sea_level){
-					diff=sea_level-heightmap[i*dim];
+				if(heightmap[i*dim]-1<sea_level){
+					diff=sea_level-heightmap[i*dim]+2;
 					cubes--;
-					for(k=0;k<diff+1;k++){
+					for(k=0;k<diff;k++){
 						SpawnCube(i-offset,sea_level-k,-offset-0.435,"water_layer",0,-180);
 						cubes++;
 					}
@@ -398,10 +402,10 @@
 			}
 
 			for(i = 0; i<=dim; i++){
-				if(heightmap[(i*dim)-1]<sea_level){
-					diff=sea_level-heightmap[(i*dim)-1];
+				if(heightmap[(i*dim)-1]-1<sea_level){
+					diff=sea_level-heightmap[(i*dim)-1]+2;
 					cubes--;
-					for(k=0;k<diff+1;k++){
+					for(k=0;k<diff;k++){
 						SpawnCube(i-offset-1,sea_level-k,+offset-0.545,"water_layer",0,0);
 						cubes++;
 					}	
@@ -783,6 +787,11 @@
 			controls.update();  
 			stats.update();
 
+			// Controllo caricamento
+			if (scene_ready) {
+				removeLoadingScreen();
+			}
+
 			// code refactoring into functions?
 			// Rotazione windmill_blades (in base al tempo)
 			delta = clock.getDelta();
@@ -907,17 +916,28 @@
 				document.getElementById('seaLevel').innerHTML = sea_level;
 			}
 
+		function removeLoadingScreen() {
+
+			var loading = document.getElementById("loadingScreen");
+			loading.classList.add("hideDiv");
+
+		}
+
 		// MAIN CODE GOES HERE //
 		
 
 		Start();
 		Update();
 		
-		
 
 		</script>
+		<!-- GUI & LOADING SCREEN -->
 
-		<!----------------->
+		<!-- LOADING SCREEN -->
+		<div id="loadingScreen">
+			<p id="loadingText" class="text-center">LOADING TERRAIN</p>
+		</div>
+
 		<!-- CODICE GUI: -->
 		<div id="GUI_container">
 			<div class="GUI_titles">
