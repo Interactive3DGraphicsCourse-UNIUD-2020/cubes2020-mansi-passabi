@@ -26,12 +26,7 @@ Il risultato finale non dipende solo dall'immagine utilizzata come input ma anch
 
 Il progetto viene fornito con una scena principale che permette di vedere tutte le features all'azione. Il file ScenaPrincipale rappresenta un ipotetico risultato ottenibile tramite l'algoritmo. Nella ScenaPrincipale è stato inoltre inserito manualmente un mulino animato al centro della scena che rappresenta uno degli ipotetici utilizzi dei terreni generati.
 
-Segue una lista di screenshoot dimostrativi di alcuni parametri dell'algoritmo, a sua volta seguita da una lista di scenari realizzati mediante quest'ultimo (i file sono presenti nel progetto e visualizzabili in real-time sul proprio browser).
-
-
-## Screenshoot dimostrativi
-
-## Screenshoot scenari realizzati
+Segue a fine README una lista di screenshoot dimostrativi di alcuni parametri dell'algoritmo, a sua volta seguita da una lista di scenari realizzati mediante quest'ultimo (i file sono presenti nel progetto e visualizzabili in real-time sul proprio browser. NB: Alcuni terreni potrebbero risultare molto pesanti per hardware non performante!).
 
 ## Idee non implementate
 
@@ -45,3 +40,19 @@ Segue una lista di screenshoot dimostrativi di alcuni parametri dell'algoritmo, 
 
 
 ## Tools utilizzati
+
+## Screenshoot dimostrativi
+
+## Screenshoot scenari realizzati
+![scenario_1](img/readme/terrains/1.png)
+![scenario_2](img/readme/terrains/2.png)
+![scenario_3](img/readme/terrains/3.png)
+![scenario_4](img/readme/terrains/4.png)
+![scenario_5](img/readme/terrains/5.png)
+![scenario_6](img/readme/terrains/6.png)
+![scenario_7](img/readme/terrains/7.png)
+![scenario_8](img/readme/terrains/8.png)
+![scenario_9](img/readme/terrains/9.png)
+![scenario_10](img/readme/terrains/10.png)
+![scenario_11](img/readme/terrains/11.png)
+
