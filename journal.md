@@ -75,8 +75,6 @@ Per i primi giorni di lavoro successivi al meeting i compiti sono stati suddivis
 - LightSystem & Visuals: Passabì
 - Spawning di oggetti nella scena: Mansi
 
-
-
 ### Mansi:
 
 - Test con heightmap più complessa -> 100x100=10K cubi = 120K triangoli circa
@@ -113,7 +111,6 @@ Per i primi giorni di lavoro successivi al meeting i compiti sono stati suddivis
   - Test su starting code with lights
 
 ![pala mulino](img/journal/a.gif)
-
 
 - Modellata l’erba
   - Ho usato 4 piani incrociati
@@ -191,7 +188,7 @@ Per i primi giorni di lavoro successivi al meeting i compiti sono stati suddivis
 
 - Completato il modello del mulino
 
-  ![mulino completo](img/c.png)
+  ![mulino completo](img/journal/c.png)
   
 ---
 ## 2 Novembre
@@ -228,12 +225,12 @@ Aggiornata la ROADMAP:
   - Implementata la gestione della qualita della luce direzionale
   - Implementate informazioni sulla mappa e visualizzazione di Heightmap usata
 
-    ![GUI](img/d.gif)
+    ![GUI](img/journal/d.gif)
   
 - Modellazione alberi
   - modello albero di mele
 
-    ![albero di mele](img/e.png)
+    ![albero di mele](img/journal/e.png)
 
 - Creato branch per la modifica di alcuni modelli
   - perfezionato albero di mele (aggiunta trasparenza)
@@ -243,7 +240,7 @@ Aggiornata la ROADMAP:
   - aggiunto albero tipo betulla (versione normale)
   - aggiunto albero tipo betulla (versione autunno)
 
-  ![alberi](img/f.png)
+  ![alberi](img/journal/f.png)
 
 - Idea: personaggio incorporeo (fantastimo) che fluttua sulla mappa e rende possibile visitare il mondo
 
@@ -253,7 +250,7 @@ Aggiornata la ROADMAP:
   - aggiunta dell'AO sul mulino
   - vari test sulle altre impostazioni disponibili in three js editor - fallimentari, nulla di utile al momento
 
-  ![mulino con ao](img/g.png)
+  ![mulino con ao](img/journal/g.png)
 
 ## 3 Novembre
 
@@ -271,7 +268,6 @@ Aggiornata la ROADMAP:
   - Soluzioni possibili:
     - Eseguire il merge dei vari mesh come effettuato con i cubi(facce) (il mesh del terreno).
     - Condividere geometria e materiale per ciascuna istanza dell'oggeto, al fine di ridurre drasticamente i cambi di contesto effettuati dalla gpu. (in astratto "passare da n oggetti diversi a n istanze di un solo oggetto").
-
 
 ### Mansi:
 
@@ -301,7 +297,7 @@ Aggiornata la ROADMAP:
 
 - Introdotta l'entità cespuglio e completata l'implementazione della sua generazione e posizionamento randomico nel terreno. (Non si è verificato il problema di performance, i cespugli vengono mergiati in un unico mesh alla fine della loro generazione.) Non sono mesh importate.
 - Pulizia e Commento del codice.
-- screenshots, aggiornamento report.
+- Screenshots, aggiornamento report.
 
 ### Passabi
 
@@ -323,6 +319,9 @@ Aggiornata la ROADMAP:
 
 ### Passabi
 - Modifica telecamera: non può più andare sotto il livello del terreno
+
+  ![mulino con ao](img/journal/h.gif)
+
 - Modificate texture scena 1 (sostituite con texture realistiche - no cp)
   - Modificata erba
   - Modificate rocce
@@ -341,7 +340,7 @@ Aggiornata la ROADMAP:
 - Obiettivo: fixare il problema del lag dovuto dai troppi oggetti a schermo
 
 - Dopo vari test posso affermare che il problema non è la funzione clone(), aggiungere lo stesso numero di oggetti con materiale condiviso non influisce sulle prestazioni, devono essere una mesh unica per far si che il framerate rimanga stabile
-- Capito perchè gli oggetti esportati non si mergiavano, sono BufferGeometry!
+- Capito perchè gli oggetti esportati non si univano in un'unica mesh, sono BufferGeometry, non normali Geometry
 - Studio BufferGeometry
 - Merge degli oggetti importati
   - Nuovo problema: è possibile assegnare un solo materiale!
@@ -368,12 +367,12 @@ Aggiornata la ROADMAP:
 ### Passabì:
 
 - Uniti i log personali in log unico
-- Scelta texture per eventuali scenari differenti
+- Scelta texture per scenari differenti
   - Sabbia
   - Canyon (terra rossastra)
 
-- Commit su GIT delle modifiche
-- Loading GUI
+- Aggiunto il loading alla scena
+- Aggiunta schermata di caricamento della scena
 
 ### Mansi:
 - Ideazione e implementazione della generazione randomica di alberi su scena.
