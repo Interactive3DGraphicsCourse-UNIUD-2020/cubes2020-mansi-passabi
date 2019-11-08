@@ -16,10 +16,10 @@
 		}
 	
 	</style>
-		<script src="lib/three.min.js"></script>
-		<script src="lib/stats.min.js"></script>
-		<script src="lib/Coordinates.js"></script>
-		<script src="lib/OrbitControls.js"></script>
+		<script src="../../lib/three.min.js"></script>
+		<script src="../../lib/stats.min.js"></script>
+		<script src="../../lib/Coordinates.js"></script>
+		<script src="../../lib/OrbitControls.js"></script>
 		
 	</head>
 	<body>
@@ -52,16 +52,16 @@
 		
 
 		// -------- PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA ------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap1.png";		// path dell'img da utilizzare come heightmap
-		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
-		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
+		var heightmap_img = "../../textures/heightmaps/heightmap1.png";		// path dell'img da utilizzare come heightmap
+		var top_texture_path = "../../textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "../../textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var bushes_texture_path = "../../textures/bush_top.jpg";		// texture per i cespugli
+		var rocks_texture_path = "../../textures/rocks_top.png";		// texture per le rocce
 		var altezza_max_terreno = 2;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var grass_density = 0.1; 							// densità superficiale dell'erba -> from 0 to 100 (esempio: 0.32 = 32%)
-		var bush_density = 0.65;							// densità superficiale dei cespugli -> from 0 to 100
+		var grass_density = 0.5; 							// densità superficiale dell'erba -> from 0 to 100 (esempio: 0.32 = 32%)
+		var bush_density = 0.01;							// densità superficiale dei cespugli -> from 0 to 100
 		var tree_density = 0.04;
-		var rocks_density = 0.44;							// densità rocce
+		var rocks_density = 0.01;							// densità rocce
 		var sea_level = 5; 									// not used jet (implementa l'acqua)
 		var wireframe_view = false;							// cubi wireframe view ON/OFF
 		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
@@ -100,7 +100,7 @@
 
 			// ------> Loading Models Phase: <------
 			var loader = new THREE.ObjectLoader();
-			loader.load("models/grass1.json",
+			loader.load("../../models/grass1.json",
 					// onLoad callback
 					function(obj){
 						// Add the loaded object to the scene
