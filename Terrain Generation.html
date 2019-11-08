@@ -30,7 +30,31 @@
 	<body>
 		
 		<script>
-		// -------------------------- Scene Variables --------------------------------------------------------------------------------------------------------------------------------------------
+		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		// -------->>> PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA <<<<-----------------------------------------------------------------------------------------------------
+		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		var heightmap_img = "textures/heightmaps/heightmap5.png";		// path dell'img da utilizzare come heightmap
+		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
+		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
+		var water_texture_path = "textures/water_top.jpg";		// texture per l'acqua
+		var trunk_texture_path = "textures/water_top.jpg";
+		var fooliage_texture_path = "textures/dirt_top.png";
+		var altezza_max_terreno = 10;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var bush_density = 0.005;							// densità superficiale dei cespugli -> from 0 to 100
+		var tree_density = 0.024441;								// densità superficiale degli alberi -> from 0 to 100
+		var rocks_density = 0.0015;							// densità superficiale delle roccie -> from 0 to 100
+		var sea_level = 2; 									// water level //FIX: se è maggiore di tutto il terreno, l'algoritmo entra in loop in cerca di posizioni (inesistenti) per la vegetazione.
+		var wireframe_view = false;							// cubi wireframe view ON/OFF
+		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
+		var show_axis = true;								// if ON: mostra gli assi x,y,z
+		var shadowQuality = 3;								// shadow quality from 1 to 5
+		var altezza_offset = 7;								// quanti strati aggiungere "sotto" il terreno
+		var objects_random_rotation_enabled = true;			// Applica rotazioni random agli oggetti che popolano la scena (alberi etc.)
+		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+		// -------------------------->> Scene Variables <<--------------------------------------------------------------------------------------------------------------------------------------------
 		var scene, camera, renderer, controls, stats;
 		var normalized_heightmap;	// heightmap normalizzata all'altezza voluta (from 0-255 to 0-altezza_max_terreno)
 		var dim;	//dimensione dim x dim dell'immagine utilizzata come heightmap
@@ -38,7 +62,7 @@
 		var camera_fixed_angle = false;
 
 
-		// -------------------------- Terrain Variables ------------------------------------------------------------------------------------------------------------------------------------------
+		// -------------------------->> Terrain Variables <<------------------------------------------------------------------------------------------------------------------------------------------
 		// top layer, mesh and geometry (example:top)
 		var top_layer_mesh, top_layer_geometry;
 		// bottom layer, mesh and geometry (example:rock,bottom)
@@ -53,10 +77,12 @@
 		var bushes_qnty,rocks_qnty,trees_qnty;	// numero cespugli,erba e alberi presenti su scena -> visualizzare sulla GUI
 		var smallObjectsQuantity = 0;			// numero complessivo small objects (cespugli roccie etc.)
 
-		var bushes_mesh, bushes_geometry; // mesh e geometria complessiva di tutti i cespugli
-		var rocks_mesh, rocks_geometry; //mesh e geometria complessiva di tutte le rocce
+		var bushes_mesh, bushes_geometry; 	// mesh e geometria complessiva di tutti i cespugli
+		var rocks_mesh, rocks_geometry;	 	// mesh e geometria complessiva di tutte le rocce
+		var trees_mesh_trunk, trees_geometry_trunk; 	// mesh e geometria complessiva parte inferiore degli alberi (tronchi)
+		var trees_mesh_fooliage, trees_geometry_fooliage;	// mesh e geometria complessiva parte superiore degli alberi (chiome)
 
-		// -------------------------- Models -----------------------------------------------------------------------------------------------------------------------------------------------------
+		// -------------------------->> Models <<-----------------------------------------------------------------------------------------------------------------------------------------------------
 		var cube_face;	// Modello base utilizzato per costruire il terreno. "Faccia di un cubo"
 
 			// ----- Edificio scena 1 - [NON TOCCARE se si vuole solo provare l'algoritmo, questa porzione di codice posiziona e gestisce un mulino posizionato in scena 1, implementazione grezza]
@@ -69,29 +95,13 @@
 			var range = 5;
 			var building_offset = 0; // dovrebbe andare tra 0 e heightmap.length (con 0, la zona di posizionamento dell'edificio risulta essere in centro)
 
-		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		// -------->>> PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA <<<<-----------------------------------------------------------------------------------------------------
-		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap6b.png";		// path dell'img da utilizzare come heightmap
-		var top_texture_path = "textures/grass_top.png"; 		// texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/dirt_top.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
-		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
-		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
-		var water_texture_path = "textures/water_top.jpg";		// texture per l'acqua
-		var altezza_max_terreno = 35;						// massima altezza del terreno, valore di normalizzazione dei valori heightmap
-		var bush_density = 0.025;							// densità superficiale dei cespugli -> from 0 to 100
-		var tree_density = 0.0;								// densità superficiale degli alberi -> from 0 to 100
-		var rocks_density = 0.05;							// densità superficiale delle roccie -> from 0 to 100
-		var sea_level = 1; 									// water level //FIX: se è maggiore di tutto il terreno, l'algoritmo entra in loop in cerca di posizioni (inesistenti) per la vegetazione.
-		var wireframe_view = false;							// cubi wireframe view ON/OFF
-		var enable_vegetation = true;						// if ON: viene generata la vegetazione e istanziata
-		var show_axis = true;								// if ON: mostra gli assi x,y,z
-		var shadowQuality = 3;								// shadow quality from 1 to 5
-		var altezza_offset = 7;								// quanti strati aggiungere "sotto" il terreno
+			// water animation variable
+			var up = true;var speed = 0.001;var d=0;var w_range=0.9;
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-		function Start() {
+			
+			// ---> START() <----
+			function Start() {
 
 			var t_1 = Date.now();	// inizio misurazione tempo di generazione del terreno
 
@@ -115,15 +125,17 @@
 			water_layer_geometry = new THREE.Geometry();
 			bushes_geometry = new THREE.Geometry();
 			rocks_geometry = new THREE.Geometry();
-
+			trees_geometry_fooliage = new THREE.Geometry();
+			trees_geometry_trunk  = new THREE.Geometry();
+	
 			cube_face = createCubeFace();	// Crea e "memorizza" il modello "faccia del cubo" che verra poi utilizzata per costruire il terreno.
 
 			generateGround(); // crea il piano su cui poggia il terreno finale.
 
-
-			// ------> Loading Models Phase: <------
+			// ------> Loading Model Phase USATO SOLO nella scena di presentazione del progetto, ignorare!: <------------------------------
 			var loader = new THREE.ObjectLoader();
 
+			if(enable_building == false){range=0;}
             if(enable_building == true){
 			loader.load("models/windmill_AO.json",
 			// onLoad callback
@@ -141,7 +153,7 @@
 				building_2 = obj; //new THREE.Mesh
 				AddBulding(building_2,-3+1.5,15+11.5,-5.5-0.5);
 			},)
-            }
+            }//--------------------------------------------------------------------------------------------------------------------------------
 			
 			// ------> Terrain generation event trigger: Al caricamento dell'heightmap viene fatta partire la generazione del terreno, seguita dalla fase di spawning su scena. <------
 			var img = new Image();
@@ -342,12 +354,13 @@
 				}
 			}
 
+			// pareti acqua
 			for(i = 0; i<dim; i++){
 				if(heightmap[i]<sea_level){
 					diff=sea_level-heightmap[i];
 					cubes--;
-					for(k=0;k<diff;k++){
-						SpawnCube(-0.5-offset,sea_level-k,i-offset,"water_layer",0,-90);
+					for(k=0;k<diff+1;k++){
+						SpawnCube(-0.435-offset,sea_level-k,i-offset,"water_layer",0,-90);
 						cubes++;
 					}
 				}
@@ -357,8 +370,8 @@
 				if(heightmap[heightmap.length-dim+i]<sea_level){
 					diff=sea_level-heightmap[heightmap.length-dim+i];
 					cubes--;
-					for(k=0;k<diff;k++){
-						SpawnCube(-0.5+offset,sea_level-k,i-offset,"water_layer",0,-270);
+					for(k=0;k<diff+1;k++){
+						SpawnCube(-0.545+offset,sea_level-k,i-offset,"water_layer",0,-270);
 						cubes++;
 					}	
 				}
@@ -368,8 +381,8 @@
 				if(heightmap[i*dim]<sea_level){
 					diff=sea_level-heightmap[i*dim];
 					cubes--;
-					for(k=0;k<diff;k++){
-						SpawnCube(i-offset,sea_level-k,-offset-0.5,"water_layer",0,-180);
+					for(k=0;k<diff+1;k++){
+						SpawnCube(i-offset,sea_level-k,-offset-0.435,"water_layer",0,-180);
 						cubes++;
 					}
 					
@@ -380,8 +393,8 @@
 				if(heightmap[(i*dim)-1]<sea_level){
 					diff=sea_level-heightmap[(i*dim)-1];
 					cubes--;
-					for(k=0;k<diff;k++){
-						SpawnCube(i-offset-1,sea_level-k,+offset-0.5,"water_layer",0,0);
+					for(k=0;k<diff+1;k++){
+						SpawnCube(i-offset-1,sea_level-k,+offset-0.545,"water_layer",0,0);
 						cubes++;
 					}	
 				}
@@ -498,7 +511,7 @@
 		function GenerateVegetation(){
 			GenerateSmallObjects("bushes",bush_density);
 			GenerateSmallObjects("rocks",rocks_density);
-			//GenerateSmallObjects("trees",tree_density);
+			GenerateSmallObjects("trees",tree_density);
 		}
 
 		// Viene chiamata dopo GenerateVegetation(); si occupa (similmente a spawnTerrain) di inizializzare su scena i mesh della vegetazione precedentemente generati dal generateVegetation.
@@ -523,7 +536,19 @@
 
 			//---------------------------------------------------------------------
 
-			// Spawning del trees mesh (??) ...
+			var trunk_texture = THREE.ImageUtils.loadTexture(trunk_texture_path);
+			var trunk_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: trunk_texture});
+			trees_mesh_trunk = new THREE.Mesh(trees_geometry_trunk,trunk_material);
+			trees_mesh_trunk.receiveShadow=true;
+			trees_mesh_trunk.castShadow=true;
+			scene.add(trees_mesh_trunk);
+
+			var fooliage_texture = THREE.ImageUtils.loadTexture(fooliage_texture_path);
+			var fooliage_material = new THREE.MeshPhongMaterial({color:"white",wireframe:wireframe_view,map: fooliage_texture});
+			trees_mesh_fooliage = new THREE.Mesh(trees_geometry_fooliage,fooliage_material);
+			trees_mesh_fooliage.receiveShadow=true;
+			trees_mesh_fooliage.castShadow=true;
+			scene.add(trees_mesh_fooliage);
 
 			//---------------------------------------------------------------------
 
@@ -552,6 +577,20 @@
 				wireframe:false,
 				color: "white" });
 
+			}
+			if(type == 'trees'){
+			//Tree Model creation
+				//Trunk Model creation
+				var geometry = new THREE.BoxGeometry(1,2,1);	// Creazione della geometry
+				var material = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "red" });
+
+				//Fooliage Model creation
+				var geometry_b = new THREE.BoxGeometry(1,1,1);	// Creazione della geometry
+				var material_b = new THREE.MeshPhongMaterial( {
+				wireframe:false,
+				color: "blue" });
 			}
 
 			var heightmap = normalized_heightmap;
@@ -602,46 +641,99 @@
 			// TRIANGLES COUNTING:
 			// Ciascun bush e roccia sono un cubo, quindi ha 12 triangoli, ne tengo conto nel conteggio dei poligoni.
 			if(type == "bushes" || type == "rocks"){faces = faces + positions.length*12;}
+			if(type == "trees"){faces = faces + positions.length*24;}
 			smallObjectsQuantity += positions.length;
 			console.log("Oggetti che popolano la scena: [di tipo:"+type+"]: "+ positions.length);
 
 			var x,z;
 
 			// Itero ciascuna posizione generando ed eseguendo il merge del mesh dell'attuale object<type> nel mesh complessivo(di appartenenza) applicando una scalatura random
-			for(j=0;j<positions.length;j++){
-				var offset = dim/2;
-				var object = new THREE.Mesh( geometry, material );
-				var index = positions[j];
-				x = Math.floor(index/dim);
-				z = index % dim;
-				y = normalized_heightmap[index];	
-				object.position.set(x-offset,y+1,z-offset);
+			if(type == "bushes" || type == "rocks"){
+				for(j=0;j<positions.length;j++){
+					var offset = dim/2;
+					var object = new THREE.Mesh( geometry, material );
+					var index = positions[j];
+					x = Math.floor(index/dim);
+					z = index % dim;
+					y = normalized_heightmap[index];	
+					object.position.set(x-offset,y+1,z-offset);
 
-				if(type == "bushes"){
-				min_scale = 0.8;
-				max_scale = 1.5;
-				scale_value = Math.random() * (max_scale-min_scale) + min_scale;
-				object.scale.set(scale_value,scale_value,scale_value);
-				object.position.y -= 0.1;
-				bushes_geometry.mergeMesh(object);
-				}	// FIX Y POS AFTER SCALING pefectly and not manually
+					if(objects_random_rotation_enabled == true){
+						rot = Math.random() * (360-0) + 0;
+						object.rotation.y += rot *  Math.PI / 180;
+					}
 
-				if(type == "rocks"){
-				min_scale = 0.1;
-				max_scale = 0.3;
-				scale_value = Math.random() * (max_scale-min_scale) + min_scale;	
+					if(type == "bushes"){
+					min_scale = 0.8;
+					max_scale = 1.5;
+					scale_value = Math.random() * (max_scale-min_scale) + min_scale;
+					object.scale.set(scale_value,scale_value,scale_value);
+					object.position.y -= 0.1;
+					bushes_geometry.mergeMesh(object);
+					}	// FIX Y POS AFTER SCALING pefectly and not manually
 
-				pos_offset_range = 0.375;
-				x_offset = pos_offset_range - Math.random() * (pos_offset_range*2 - 0) + 0;	
-				z_offset =  pos_offset_range - Math.random() * (pos_offset_range*2 -0) + 0;	
-				object.scale.set(scale_value,scale_value,scale_value);
-				object.position.y -= 0.5;
-				object.position.x += x_offset;
-				object.position.z += z_offset;
-				rocks_geometry.mergeMesh(object);
+					if(type == "rocks"){
+					min_scale = 0.1;
+					max_scale = 0.3;
+					scale_value = Math.random() * (max_scale-min_scale) + min_scale;	
+
+					pos_offset_range = 0.375;
+					x_offset = pos_offset_range - Math.random() * (pos_offset_range*2 - 0) + 0;	
+					z_offset =  pos_offset_range - Math.random() * (pos_offset_range*2 -0) + 0;	
+					object.scale.set(scale_value,scale_value,scale_value);
+					object.position.y -= 0.5;
+					object.position.x += x_offset;
+					object.position.z += z_offset;
+					rocks_geometry.mergeMesh(object);
+					}
+				}
+			}else if(type == "trees"){
+				
+				for(j=0;j<positions.length;j++){
+					var offset = dim/2;
+					var trunk = new THREE.Mesh( geometry, material );
+					var fooliage = new THREE.Mesh( geometry_b, material_b );
+					var index = positions[j];
+					x = Math.floor(index/dim);
+					z = index % dim;
+					y = normalized_heightmap[index];	
+					trunk.position.set(x-offset,y+1,z-offset);
+					fooliage.position.set(x-offset,y+1,z-offset);
+					
+					min_trunk_scale_y = 0.8;
+					max_trunk_scale_y = 2;
+					trunk_scale_xz = 0.6;
+
+					min_fooliage_scale_xz = 1;
+					max_fooliage_scale_xz = 2.35;
+					
+					min_fooliage_scale_y = 2;
+					max_fooliage_scale_y = 4;
+
+					trunk_scale_y = Math.random() * (max_trunk_scale_y-min_trunk_scale_y) + min_trunk_scale_y;
+					fooliage_scale_xz = Math.random() * (max_fooliage_scale_xz-min_fooliage_scale_xz) + min_fooliage_scale_xz;
+					fooliage_scale_y = Math.random() * (max_fooliage_scale_y-min_fooliage_scale_y) + min_fooliage_scale_y;
+
+					trunk.scale.set(trunk_scale_xz,trunk_scale_y,trunk_scale_xz);
+					trunk.position.y += trunk_scale_y/2;
+
+					fooliage.position.y = trunk.position.y+trunk_scale_y+fooliage_scale_y/2;
+					fooliage.scale.set(fooliage_scale_xz,fooliage_scale_y,fooliage_scale_xz);
+
+					if(objects_random_rotation_enabled == true){
+						rot = Math.random() * (360-0) + 0;
+						trunk.rotation.y += rot *  Math.PI / 180;
+						fooliage.rotation.y += rot *  Math.PI / 180;
+					}
+
+				
+
+					trees_geometry_trunk.mergeMesh(trunk);
+					trees_geometry_fooliage.mergeMesh(fooliage);
+
 				}
 			}
-}
+		}
 
 		// Questa funzione viene chiamata una volta, si occupa della generazione della faccia "base" con cui comporremo il terreno successivamente.
 		function createCubeFace(){
@@ -652,6 +744,7 @@
 			face = new THREE.Mesh( geometry, material );
 			face.castShadow=true;
 			face.receiveShadow=true;
+			//face.aoMapIntensity = 1; //implement ao?
 			return face;
 		}
 
@@ -686,6 +779,17 @@
 			// controllo che il tipo sia oggetto e non undefined (la rotazione di un oggetto undefined porterebbe ad un errore!)
 			if (typeof building_2 == 'object') {
 				building_2.rotation.z += 10 * delta * Math.PI / 180;
+			}
+
+
+			if(up == true){
+				water_layer_mesh.position.y += speed;
+				d=d+speed;
+				if(d>w_range){up=false;}
+			}else if(up == false){
+				water_layer_mesh.position.y -= speed;
+				d=d-speed;
+				if(d<0){up=true;}
 			}
 
 			Render();
