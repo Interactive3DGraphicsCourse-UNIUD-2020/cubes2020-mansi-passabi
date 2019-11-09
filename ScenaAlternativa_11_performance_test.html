@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Moon - Mansi & Passabì</title>
+		<title>Volcano - Mansi & Passabì</title>
 
 		<!-- Bootstrap CSS - Principalmente per customizzare la GUI -->
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -33,14 +33,14 @@
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// -------->>> PARAMETRI DI CONFIGURAZIONE GENERAZIONE DEL TERRENO & della SCENA <<<<-----------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		var heightmap_img = "textures/heightmaps/heightmap11.jpg";	// path dell'img da utilizzare come heightmap per la generazione del terreno.
+		var heightmap_img = "textures/heightmaps/heightmap13.jpg";	// path dell'img da utilizzare come heightmap per la generazione del terreno.
 																	// DEVE essere nxn (non spingersi oltre 250x250 su notebook, max 1000x1000 su desktop performanti)
 
-		var altezza_max_terreno = 7;					// massima altezza del terreno, valore di normalizzazione dei valori heightmap
+		var altezza_max_terreno = 150;					// massima altezza del terreno, valore di normalizzazione dei valori heightmap
 		var bush_density = 0.0;							// densità superficiale dei cespugli -> from 0 to 100
 		var tree_density = 0.0;							// densità superficiale degli alberi -> from 0 to 100
 		var rocks_density = 0.50;						// densità superficiale delle roccie -> from 0 to 100
-		var sea_level = 0; 								// altezza dell'acqua (limitata dal codice ad altezza_max_terreno-1)
+		var sea_level = 40; 								// altezza dell'acqua (limitata dal codice ad altezza_max_terreno-1)
 		var enable_vegetation = true;					// if ON: viene generata la vegetazione e istanziata
 		var show_axis = false;							// if ON: mostra gli assi x,y,z
 		var shadowQuality = 3;							// shadows quality from 1 to 5
@@ -49,11 +49,11 @@
 		var wireframe_view = false;						// cubi wireframe view ON/OFF
 
 		// ---->> Textures dei materiali <<----
-		var top_texture_path = "textures/rocks_top.png"; 		// texture del top_layer (cubi superficie)
-		var bottom_texture_path = "textures/rocks_top_dark.png";		// texture del bottom_layer (cubi "pareti"/"pendenze")
+		var top_texture_path = "textures/lava_layer_4.jpg"; 		// texture del top_layer (cubi superficie)
+		var bottom_texture_path = "textures/lava_layer_2.jpg";		// texture del bottom_layer (cubi "pareti"/"pendenze")
 		var bushes_texture_path = "textures/bush_top.jpg";		// texture per i cespugli
-		var rocks_texture_path = "textures/rocks_top.png";		// texture per le rocce
-		var water_texture_path = "textures/rocks_top_darker.png";		// texture per l'acqua
+		var rocks_texture_path = "textures/lava_layer_1.jpg";		// texture per le rocce
+		var water_texture_path = "textures/lava_layer_1.jpg";		// texture per l'acqua
 		var trunk_texture_path = "textures/log_oak.png";		// texture tronco degli alberi
 		var fooliage_texture_path = "textures/leaves_birch_opaque.png";		// texture  chioma degli alberi
 
@@ -103,7 +103,7 @@
 			var building_offset = 0; // dovrebbe andare tra 0 e heightmap.length (con 0, la zona di posizionamento dell'edificio risulta essere in centro)
 
 			// water animation variable
-			var water_up = false;var water_speed = 0;var d=0;var w_range=0.9;var water_ready = false;
+			var water_up = true;var water_speed = 0.0015;var d=0;var w_range=0.9;var water_ready = false;
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			

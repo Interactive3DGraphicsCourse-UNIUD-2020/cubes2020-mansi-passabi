@@ -380,3 +380,10 @@ Aggiornata la ROADMAP:
 - Test di funzionamento del codice.
 - Stesura e rilettura di tutta la mia parte del journal.
 - Creazione screenshots per il readme.
+
+## 9 Novembre
+
+### Passabì:
+
+- Fix Scena Alternativa Luna
+- Aggiunte alcune scene
