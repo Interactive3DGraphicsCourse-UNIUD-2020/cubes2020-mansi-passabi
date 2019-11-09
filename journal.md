@@ -16,7 +16,7 @@
 
     ![Prima heightmap](img/journal/3.png)
 
-###
+
 - Refactoring/riorganizzazione del codice fornito: creazione di funzioni per inizializzare camera,scena renderer, lightsystem.
 
 
@@ -173,13 +173,13 @@ Per i primi giorni di lavoro successivi al meeting i compiti sono stati suddivis
 
 - Aggiunta musica di sottofondo alla scena
   - per ora, si puo' disattivare premendo "s" (= spegni) e riattivare premendo "m" (= musica)
-  - TO DO: implementare queste funzioni con la GUI (priorita' media)
+  - TODO: implementare queste funzioni con la GUI (priorita' media)
 
 - Scrittura portfolio in linguaggio MarkDown
-  - TO DO: finire di inserire le immagini nella directory project_report/img
+  - TODO: finire di inserire le immagini nella directory project_report/img
 
 - Creato modello fungo rosso e grigio + test
-  - NB: per le texture abbiamo deciso di usare delle skin gratuite usate per delle mod di MineCraft 
+  - NB: per le texture abbiamo deciso di usare delle skin gratuite usate per delle mod di Minecraft 
   - TODO: la parte trasparente non dovrebbe fare ombra --> da fixare
 
 - Riscontrato problema sulle pale del mulino
@@ -193,7 +193,7 @@ Per i primi giorni di lavoro successivi al meeting i compiti sono stati suddivis
 ---
 ## 2 Novembre
 
-### Mansi
+### Mansi:
 
 - Obiettivi del giorno: analisi del codice, refactoring & ottimizzazione.
 
@@ -213,7 +213,7 @@ Aggiornata la ROADMAP:
 | 2 | Idea: Aggiunta di un sistema di generazione di superfici d’acqua. | Bassa |
 | 3 | La telecamera si posiziona automaticamente in una posizione coerente in base alle dimensioni del terreno generato (si adatta alle varie dimensioni). | Bassa |
 
-### Passabi
+### Passabi:
 
 - Sperimentazioni con luci e ombre
 - Riscontrato problema quando vengono cambiate le impostazioni usando la funzione *onDocumentKeyDown*
@@ -286,7 +286,7 @@ Aggiornata la ROADMAP:
 | 8 | Idea: Aggiunta di un sistema di generazione di superfici d’acqua. | Bassa |
 | 9 | La telecamera si posiziona automaticamente in una posizione coerente in base alle dimensioni del terreno generato (si adatta alle varie dimensioni). | Bassa |
 
-### Passabi
+### Passabi:
 
 - Fix minori codice
 - Modifiche alla GUI per quanto riguarda la gestione delle ombre
@@ -299,7 +299,7 @@ Aggiornata la ROADMAP:
 - Pulizia e Commento del codice.
 - Screenshots, aggiornamento report.
 
-### Passabi
+### Passabi:
 
 - Aggiunte immagini al journal/report markdown
 - Spostamento journal dal file personale al file condiviso
@@ -317,7 +317,7 @@ Aggiornata la ROADMAP:
   - modificato il colore del piano su cui appoggia la scena
   - Varie piccole modifiche e fix del codice.
 
-### Passabi
+### Passabi:
 - Modifica telecamera: non può più andare sotto il livello del terreno
 
   ![mulino con ao](img/journal/h.gif)
@@ -382,6 +382,12 @@ Aggiornata la ROADMAP:
 - Creazione screenshots per il readme.
 
 ## 9 Novembre
+
+### Videocall di gruppo:
+- Conclusione del progetto
+  - revisione README
+  - revisione JOURNAL
+  - revisione scene
 
 ### Passabì:
 
